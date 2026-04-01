@@ -1,0 +1,51 @@
+{
+  "paths": {
+    "workspace": "workspace",
+    "tasks": "tasks",
+    "log": "bridge.log"
+  },
+  "poll_interval_ms": 1000,
+  "openai": {
+    "provider": "openai",
+    "model": "qwen3.5-flash",
+    "base_url": "https://api.openai-proxy.org/v1",
+    "openai_api_key": "sk-2TM8euNlKv1K0UNdwEM4Nw4YS7L5UIQuphO2ZQ9lwGoAszZe"
+  },
+  "useOllama": false,
+  "ollama": {
+    "base_url": "http://localhost:11434",
+    "model": "deepseek-coder:6.7b"
+  },
+  "anthropic": {
+    "enabled": true,
+    "provider": "claude_cli",
+    "cli_path": "claude",
+    "model": "",
+    "timeout_ms": 120000,
+    "json_strict": true
+  },
+  "routing": {
+    "thresholds": {
+      "medium": 35,
+      "high": 70
+    },
+    "semantic_verify": true,
+    "context_policy": {
+      "ollama_profiles": {
+        "default_8k": { "max_tokens": 8000 },
+        "extended_32k": { "max_tokens": 32000 }
+      },
+      "ollama_profile": "default_8k"
+    }
+  },
+  "context_limits": {
+    "max_file_bytes": 32768,
+    "max_files": 60,
+    "include_exts": ["js", "ts", "json", "md", "txt", "yml", "yaml", "toml"]
+  },
+  "git": {
+    "default_branch": "main",
+    "user_name": "agent_bridge",
+    "user_email": "agent@local"
+  }
+}

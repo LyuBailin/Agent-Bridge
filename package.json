@@ -1,0 +1,13 @@
+{
+  "name": "agent_bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 1 MVP: instruction -> codegen -> git apply -> feedback",
+  "license": "UNLICENSED",
+  "main": "bridge/main.js",
+  "scripts": {
+    "start": "node bridge/main.js",
+    "test": "node --test"
+  }
+}
+

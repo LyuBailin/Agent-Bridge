@@ -1,0 +1,470 @@
+{
+  "processed": {
+    "openai": {
+      "status": "done",
+      "final_status": "done",
+      "attempts": 1,
+      "commit": "ced6f33f2d1db09bf16f952be89641a877402458",
+      "final_commit": "ced6f33f2d1db09bf16f952be89641a877402458",
+      "difficulty": "medium",
+      "complexity_score": 65,
+      "generator_provider": "openai",
+      "review_provider": "claude_cli",
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "openai",
+        "created_at": "2026-04-01T10:42:24.415Z",
+        "updated_at": "2026-04-01T10:42:59.025Z",
+        "replans": 0,
+        "order": [
+          "s1"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Move the calculator.js and greeter.js files from workspace root into a new lib/ directory. Then update the require paths in app.js to point to the new locations. After moving, the module require statements should work correctly with node --check.",
+            "target_files": [
+              "calculator.js",
+              "greeter.js",
+              "lib/",
+              "app.js"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-01T10:42:24.418Z",
+            "finished_at": "2026-04-01T10:42:59.025Z",
+            "checkpoint_before_sha": "7f52b3b23ce99abf92b31d92f47e9960c578de23",
+            "checkpoint_commit_sha": "204ba783421927d4a41780ef841052b073318b8d",
+            "raw_outputs": [
+              "tasks/raw/openai.s1.attempt1.txt"
+            ],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "started_at": "2026-04-01T10:42:24.418Z",
+          "finished_at": "2026-04-01T10:42:59.025Z",
+          "checkpoint_before_sha": "7f52b3b23ce99abf92b31d92f47e9960c578de23",
+          "checkpoint_commit_sha": "204ba783421927d4a41780ef841052b073318b8d",
+          "raw_output_paths": [
+            "tasks/raw/openai.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "error_summary": null,
+      "diff_stat": null,
+      "finished_at": "2026-04-01T10:42:59.055Z"
+    },
+    "ollama": {
+      "status": "failed",
+      "final_status": "failed",
+      "attempts": 3,
+      "commit": null,
+      "error_summary": "Exceeded max replans; aborting",
+      "diff_stat": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "ollama",
+        "created_at": "2026-04-01T10:55:56.902Z",
+        "updated_at": "2026-04-01T10:57:42.114Z",
+        "replans": 3,
+        "order": [
+          "r2_r1_s1"
+        ],
+        "nodes": {
+          "r2_r1_s1": {
+            "id": "r2_r1_s1",
+            "description": "Verify that node --check passes on app.js with updated paths",
+            "target_files": [
+              "app.js",
+              "lib/calculator.js",
+              "lib/greeter.js"
+            ],
+            "dependencies": [],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "ollama",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-01T10:57:35.646Z",
+            "finished_at": "2026-04-01T10:57:42.082Z",
+            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/ollama.r2_r1_s1.attempt1.txt",
+              "tasks/raw/ollama.r2_r1_s1.attempt2.txt",
+              "tasks/raw/ollama.r2_r1_s1.attempt3.txt"
+            ],
+            "errors": [
+              {
+                "attempt": 1,
+                "stage": "apply",
+                "message": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:",
+                "details": {
+                  "occurrences": 0,
+                  "search_preview": "const calculator = require('./lib/calculator');",
+                  "search_len": 47,
+                  "change_index": 0,
+                  "search_anchors": [
+                    "const calculator = require('./lib/calculator');"
+                  ],
+                  "file": "app.js",
+                  "file_snippets": {
+                    "ok": true,
+                    "relPath": "app.js",
+                    "max_chars": 4000,
+                    "truncated": false,
+                    "snippets": [
+                      {
+                        "kind": "head",
+                        "start_line": 1,
+                        "end_line": 6,
+                        "text": "   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6: "
+                      }
+                    ],
+                    "error": null
+                  },
+                  "snippet_feedback": "SEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+                }
+              },
+              {
+                "attempt": 2,
+                "stage": "parse",
+                "message": "sr block missing FILE:",
+                "details": null
+              },
+              {
+                "attempt": 3,
+                "stage": "apply",
+                "message": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:",
+                "details": {
+                  "occurrences": 0,
+                  "search_preview": "const calculator = require('./lib/calculator');",
+                  "search_len": 47,
+                  "change_index": 0,
+                  "search_anchors": [
+                    "const calculator = require('./lib/calculator');"
+                  ],
+                  "file": "app.js",
+                  "file_snippets": {
+                    "ok": true,
+                    "relPath": "app.js",
+                    "max_chars": 4000,
+                    "truncated": false,
+                    "snippets": [
+                      {
+                        "kind": "head",
+                        "start_line": 1,
+                        "end_line": 6,
+                        "text": "   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6: "
+                      }
+                    ],
+                    "error": null
+                  },
+                  "snippet_feedback": "SEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+                }
+              }
+            ]
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "ollama",
+          "review_provider": "claude_cli",
+          "started_at": "2026-04-01T10:55:56.905Z",
+          "finished_at": "2026-04-01T10:57:06.084Z",
+          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/ollama.s1.attempt1.txt",
+            "tasks/raw/ollama.s1.attempt2.txt",
+            "tasks/raw/ollama.s1.attempt3.txt"
+          ],
+          "error_summary": "Source file does not exist: calculator.js"
+        },
+        {
+          "subtask_id": "r1_s1",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "ollama",
+          "review_provider": "claude_cli",
+          "started_at": "2026-04-01T10:57:16.910Z",
+          "finished_at": "2026-04-01T10:57:25.638Z",
+          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/ollama.r1_s1.attempt1.txt",
+            "tasks/raw/ollama.r1_s1.attempt2.txt",
+            "tasks/raw/ollama.r1_s1.attempt3.txt"
+          ],
+          "error_summary": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+        },
+        {
+          "subtask_id": "r2_r1_s1",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "ollama",
+          "review_provider": "claude_cli",
+          "started_at": "2026-04-01T10:57:35.646Z",
+          "finished_at": "2026-04-01T10:57:42.082Z",
+          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/ollama.r2_r1_s1.attempt1.txt",
+            "tasks/raw/ollama.r2_r1_s1.attempt2.txt",
+            "tasks/raw/ollama.r2_r1_s1.attempt3.txt"
+          ],
+          "error_summary": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+        }
+      ],
+      "replans": 3,
+      "finished_at": "2026-04-01T10:57:42.114Z"
+    },
+    "openai-difficult": {
+      "status": "failed",
+      "final_status": "failed",
+      "attempts": 0,
+      "commit": null,
+      "error_summary": "Claude CLI timeout after 120000ms",
+      "diff_stat": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "openai-difficult",
+        "created_at": "2026-04-01T11:49:33.990Z",
+        "updated_at": "2026-04-01T11:50:14.534Z",
+        "replans": 0,
+        "order": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6",
+          "s7",
+          "s8"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create src/ and tests/ directory structure with required subdirectories",
+            "target_files": [
+              "src/controllers",
+              "src/services",
+              "src/utils",
+              "src/models",
+              "tests/services",
+              "tests/controllers"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "claude_cli",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-01T11:49:33.993Z",
+            "finished_at": "2026-04-01T11:50:14.529Z",
+            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/openai-difficult.s1.attempt1.txt"
+            ],
+            "errors": []
+          },
+          "s2": {
+            "id": "s2",
+            "description": "Move and refactor calculator.js and greeter.js into service modules in src/services",
+            "target_files": [
+              "src/services/calculator.service.js",
+              "src/services/greeter.service.js"
+            ],
+            "dependencies": [
+              "s1"
+            ],
+            "status": "running",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": "2026-04-01T11:50:14.529Z",
+            "finished_at": null,
+            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s3": {
+            "id": "s3",
+            "description": "Implement error handling and logging utilities in src/utils",
+            "target_files": [
+              "src/utils/errorHandler.js",
+              "src/utils/logger.js"
+            ],
+            "dependencies": [
+              "s1"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s4": {
+            "id": "s4",
+            "description": "Create API controller exposing services via HTTP endpoints",
+            "target_files": [
+              "src/controllers/api.controller.js"
+            ],
+            "dependencies": [
+              "s2",
+              "s3"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s5": {
+            "id": "s5",
+            "description": "Update main app.js to use new modular architecture and start HTTP server",
+            "target_files": [
+              "app.js"
+            ],
+            "dependencies": [
+              "s2",
+              "s3",
+              "s4"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s6": {
+            "id": "s6",
+            "description": "Add unit tests for calculator and greeter services",
+            "target_files": [
+              "tests/services/calculator.service.test.js",
+              "tests/services/greeter.service.test.js"
+            ],
+            "dependencies": [
+              "s2"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s7": {
+            "id": "s7",
+            "description": "Add unit tests for API controller",
+            "target_files": [
+              "tests/controllers/api.controller.test.js"
+            ],
+            "dependencies": [
+              "s4",
+              "s3"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s8": {
+            "id": "s8",
+            "description": "Initialize package.json and run all tests to verify they pass",
+            "target_files": [
+              "package.json"
+            ],
+            "dependencies": [
+              "s6",
+              "s7"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "claude_cli",
+          "review_provider": "claude_cli",
+          "started_at": "2026-04-01T11:49:33.993Z",
+          "finished_at": "2026-04-01T11:50:14.529Z",
+          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/openai-difficult.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "finished_at": "2026-04-01T11:52:12.791Z"
+    }
+  }
+}
