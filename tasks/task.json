@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "task_id": "openai-difficult",
+  "instruction": "Refactor the existing project structure to implement a modular architecture with proper separation of concerns. Specifically: 1) Create a new src/ directory structure with subdirectories for controllers, services, models, and utils. 2) Move and refactor the existing calculator.js and greeter.js into appropriate service modules. 3) Create a new API controller that exposes these services via HTTP endpoints. 4) Implement proper error handling and logging throughout the application. 5) Add comprehensive unit tests for all services and controllers. 6) Update the main app.js to use the new modular structure. 7) Ensure all tests pass and the application runs correctly with the new architecture.",
+  "status": "failed",
+  "started_at": "2026-04-01T11:49:02.333Z",
+  "updated_at": "2026-04-01T11:52:12.811Z",
+  "finished_at": "2026-04-01T11:52:12.791Z"
+}

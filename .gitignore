@@ -1,0 +1,6 @@
+node_modules/
+bridge.log
+.env
+tasks/result.json
+tasks/raw/
+
