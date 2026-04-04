@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 读取配置文件
-const configPath = path.join(__dirname, './config.json');
+const configPath = path.join(__dirname, '../config.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 // 提取OpenAI配置

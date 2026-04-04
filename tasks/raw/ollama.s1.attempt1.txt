@@ -1,0 +1,49 @@
+```op
+MV: app.js -> lib/app.js
+MV: lib/calculator.js -> lib/lib/calculator.js
+MV: lib/greeter.js -> lib/lib/greeter.js
+```
+
+```sr
+FILE: lib/lib/calculator.js
+SEARCH:
+<<<
+module.exports = { add, subtract, multiply, divide };
+>>>
+REPLACE:
+<<<
+const path = require('path');
+module.exports = { 
+    add, 
+    subtract, 
+    multiply, 
+    divide 
+};
+>>>
+
+FILE: lib/lib/greeter.js
+SEARCH:
+<<<
+module.exports = { greet };
+>>>
+REPLACE:
+<<<
+const path = require('path');
+module.exports = { 
+    greet 
+};
+>>>
+
+FILE: app.js
+SEARCH:
+<<<
+require('./lib/calculator');
+require('./lib/greeter');
+>>>
+REPLACE:
+<<<
+const path = require('path');
+const calculator = require(path.join(__dirname, '../', 'lib/lib/calculator'));
+const greeter = require(path.join(__dirname, '../', 'lib/lib/greeter'));
+>>>
+```

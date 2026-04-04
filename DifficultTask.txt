@@ -1,0 +1,139 @@
+# Complex Full-Stack Application Development Task
+
+## Overall Task
+Create a full-stack application with the following components:
+1. Frontend: React application with user authentication, profile management, and data visualization
+2. Backend: Node.js Express API with JWT authentication, user management, and data endpoints
+3. Database: PostgreSQL schema with users, profiles, and data tables
+4. Authentication: Implement secure password hashing, JWT token generation, and refresh token functionality
+5. Data Visualization: Create a chart component that displays user activity data
+6. Testing: Write unit tests for critical backend functions
+7. Documentation: Create API documentation for all endpoints
+
+The application should follow best practices for security, performance, and code quality. 
+Use modern JavaScript features and ensure proper error handling throughout the application.
+
+## Phased Implementation Plan
+
+### Phase 1: Project Initialization and Database Design
+
+**Executable Tasks:**
+1. Initialize project structure with frontend and backend directories
+2. Set up version control with Git
+3. Create PostgreSQL database schema with users, profiles, and data tables
+4. Configure database connection settings
+5. Create basic project configuration files (package.json, .env, etc.)
+6. Verify database connection and schema creation
+
+### Phase 2: Backend Core Development
+
+**Executable Tasks:**
+1. Create Express server with basic routing
+2. Implement user authentication system:
+   - Password hashing with bcrypt
+   - JWT token generation and validation
+   - Authentication middleware
+3. Develop user management API endpoints:
+   - User registration (POST /api/auth/register)
+   - User login (POST /api/auth/login)
+   - User information update (PUT /api/users/:id)
+4. Implement data management API endpoints:
+   - Basic CRUD operations for data resources
+   - Data validation with express-validator
+   - Comprehensive error handling
+5. Test backend API endpoints with Postman or curl
+
+### Phase 3: Frontend Core Development
+
+**Executable Tasks:**
+1. Initialize React application with create-react-app or Vite
+2. Configure React Router for navigation
+3. Implement authentication components:
+   - Login page with form validation
+   - Registration page with form validation
+   - Logout functionality
+4. Develop user profile management:
+   - Personal information display
+   - Profile editing functionality
+5. Implement API integration:
+   - Axios configuration with interceptors
+   - Response handling and error management
+   - Token storage and management
+6. Test frontend components and API integration
+
+### Phase 4: Advanced Features Implementation
+
+**Executable Tasks:**
+1. Develop data visualization component:
+   - Integrate Chart.js library
+   - Implement data processing logic
+   - Create responsive chart design
+2. Implement refresh token functionality:
+   - Refresh token endpoint
+   - Token rotation mechanism
+   - Automatic token refresh on expiry
+3. Enhance security measures:
+   - CORS configuration
+   - Input validation and sanitization
+   - Protection against SQL injection
+4. Performance optimization:
+   - Frontend caching strategies
+   - Backend response optimization
+   - Database query optimization
+5. Test advanced features and security measures
+
+### Phase 5: Testing and Documentation
+
+**Executable Tasks:**
+1. Write backend unit tests with Jest:
+   - Authentication functionality tests
+   - API endpoint tests
+   - Error handling tests
+2. Create API documentation with Swagger/OpenAPI:
+   - Endpoint descriptions and parameters
+   - Request/response examples
+   - Authentication flow documentation
+3. Perform integration testing:
+   - Frontend-backend integration tests
+   - End-to-end testing with Cypress
+4. Conduct security audit:
+   - Vulnerability scanning
+   - Security best practices review
+5. Run test suite and verify documentation completeness
+
+### Phase 6: Deployment and Optimization
+
+**Executable Tasks:**
+1. Build frontend application for production
+2. Configure production environment settings:
+   - Environment variables
+   - HTTPS configuration
+   - Server optimization
+3. Deploy to production server:
+   - Set up Docker containers
+   - Configure NGINX reverse proxy
+   - Set up CI/CD pipeline
+4. Set up performance monitoring:
+   - Server metrics collection
+   - Error tracking
+   - User experience monitoring
+5. Configure logging system:
+   - Application logs
+   - Error logs
+   - Access logs
+6. Verify deployment and monitor system performance
+
+## Technology Stack
+- Frontend: React, React Router, Axios, Chart.js
+- Backend: Node.js, Express, PostgreSQL, JWT, bcrypt
+- Testing: Jest, Supertest, Cypress
+- Documentation: Swagger/OpenAPI
+- Deployment: Docker, NGINX, CI/CD
+
+## Expected Outcomes
+- Complete full-stack application with all requested features
+- Secure, high-performance code implementation
+- Comprehensive test coverage
+- Detailed API documentation
+- Deployable production environment configuration
+- Scalable and maintainable codebase

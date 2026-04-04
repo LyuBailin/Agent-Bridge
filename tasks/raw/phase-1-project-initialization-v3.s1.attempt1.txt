@@ -1,0 +1,535 @@
+```op
+MKDIR: frontend
+```
+
+```op
+MKDIR: backend/src/config
+```
+
+```op
+MKDIR: backend/src/models
+```
+
+```op
+MKDIR: database
+```
+
+```op
+MKDIR: docs
+```
+
+```op
+MV: app.js -> backend/src/index.js
+```
+
+```op
+MV: lib/calculator.js -> backend/src/utils/calculator.js
+```
+
+```op
+MV: lib/greeter.js -> backend/src/utils/greeter.js
+```
+
+```op
+RM: lib/calculator.js
+```
+
+```op
+RM: lib/greeter.js
+```
+
+```op
+RM: lib
+```
+
+```sr
+FILE: package.json
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+{
+  "name": "phase-1-project",
+  "version": "1.0.0",
+  "description": "Full-stack application with PostgreSQL database",
+  "main": "backend/src/index.js",
+  "scripts": {
+    "start": "node backend/src/index.js",
+    "dev": "nodemon backend/src/index.js",
+    "db:migrate": "psql -U postgres -d phase1_db -f database/schema.sql"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+>>>
+```
+
+```sr
+FILE: .env.example
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=phase1_db
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+>>>
+```
+
+```sr
+FILE: .gitignore
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+build/
+>>>
+```
+
+```sr
+FILE: backend/package.json
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Backend API server",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+>>>
+```
+
+```sr
+FILE: backend/.env.example
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=phase1_db
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+>>>
+```
+
+```sr
+FILE: backend/src/index.js
+SEARCH:
+<<<
+const { add, subtract, multiply, divide } = require('./lib/calculator');
+const { greet } = require('./lib/greeter');
+
+console.log('Calc:', add(2, 3));
+console.log(greet('World'));
+>>>
+REPLACE:
+<<<
+require('dotenv').config();
+const express = require('express');
+const { Pool } = require('pg');
+
+const app = express();
+app.use(express.json());
+
+// Database connection pool
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'phase1_db',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+});
+
+// Health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT NOW()');
+    res.json({ status: 'healthy', message: 'Database connected' });
+  } catch (error) {
+    res.status(500).json({ status: 'unhealthy', message: error.message });
+  }
+});
+
+// Users endpoint
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM users');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+>>>
+```
+
+```sr
+FILE: backend/src/config/database.js
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'phase1_db',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+pool.on('connect', () => {
+  console.log('Connected to PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+module.exports = pool;
+>>>
+```
+
+```sr
+FILE: backend/src/models/User.js
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+const db = require('../config/database');
+
+class User {
+  static async findAll() {
+    const result = await db.query('SELECT * FROM users ORDER BY id');
+    return result.rows;
+  }
+
+  static async findById(id) {
+    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  }
+
+  static async create(userData) {
+    const { username, email, password_hash } = userData;
+    const result = await db.query(
+      `INSERT INTO users (username, email, password_hash, created_at, updated_at)
+       VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *`,
+      [username, email, password_hash]
+    );
+    return result.rows[0];
+  }
+
+  static async update(id, userData) {
+    const { username, email } = userData;
+    const result = await db.query(
+      `UPDATE users SET username = $1, email = $2, updated_at = NOW()
+       WHERE id = $3 RETURNING *`,
+      [username, email, id]
+    );
+    return result.rows[0] || null;
+  }
+
+  static async delete(id) {
+    const result = await db.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
+    return result.rows[0] || null;
+  }
+}
+
+module.exports = User;
+>>>
+```
+
+```sr
+FILE: backend/src/models/Profile.js
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+const db = require('../config/database');
+
+class Profile {
+  static async findAll() {
+    const result = await db.query('SELECT * FROM profiles ORDER BY id');
+    return result.rows;
+  }
+
+  static async findById(id) {
+    const result = await db.query('SELECT * FROM profiles WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  }
+
+  static async findByUserId(userId) {
+    const result = await db.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
+    return result.rows[0] || null;
+  }
+
+  static async create(profileData) {
+    const { user_id, bio, avatar_url, website } = profileData;
+    const result = await db.query(
+      `INSERT INTO profiles (user_id, bio, avatar_url, website, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *`,
+      [user_id, bio, avatar_url, website]
+    );
+    return result.rows[0];
+  }
+
+  static async update(id, profileData) {
+    const { bio, avatar_url, website } = profileData;
+    const result = await db.query(
+      `UPDATE profiles SET bio = $1, avatar_url = $2, website = $3, updated_at = NOW()
+       WHERE id = $4 RETURNING *`,
+      [bio, avatar_url, website, id]
+    );
+    return result.rows[0] || null;
+  }
+
+  static async delete(id) {
+    const result = await db.query('DELETE FROM profiles WHERE id = $1 RETURNING *', [id]);
+    return result.rows[0] || null;
+  }
+}
+
+module.exports = Profile;
+>>>
+```
+
+```sr
+FILE: database/schema.sql
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+-- Phase 1 Database Schema
+-- PostgreSQL Database for Full-Stack Application
+
+-- Enable UUID extension if needed
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Profiles table
+CREATE TABLE IF NOT EXISTS profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    bio TEXT,
+    avatar_url VARCHAR(500),
+    website VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id)
+);
+
+-- Create indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+
+-- Function to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Triggers for automatic timestamp updates
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_profiles_updated_at
+    BEFORE UPDATE ON profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert sample data for testing
+INSERT INTO users (username, email, password_hash)
+VALUES ('testuser', 'test@example.com', '$2b$10$samplehash')
+ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO profiles (user_id, bio, website)
+VALUES (1, 'This is a test profile.', 'https://example.com')
+ON CONFLICT DO NOTHING;
+>>>
+```
+
+```sr
+FILE: README.md
+SEARCH:
+<<<
+{}
+>>>
+REPLACE:
+<<<
+# Phase 1 Project - Full-Stack Application
+
+## Project Structure
+
+```
+project-root/
+├── frontend/          # Frontend application
+├── backend/           # Backend API server
+│   ├── src/
+│   │   ├── config/    # Configuration files
+│   │   ├── models/    # Database models
+│   │   └── utils/     # Utility functions
+│   └── .env.example   # Environment variables template
+├── database/          # Database schema and migrations
+└── docs/              # Documentation
+```
+
+## Prerequisites
+
+- Node.js (v16 or higher)
+- PostgreSQL (v12 or higher)
+- npm or yarn
+
+## Setup Instructions
+
+### 1. Clone and Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure Environment Variables
+
+Copy the environment template and configure:
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+```
+
+Edit `.env` and `backend/.env` with your database credentials.
+
+### 3. Initialize Database
+
+Create the database and run migrations:
+
+```bash
+createdb phase1_db
+npm run db:migrate
+```
+
+### 4. Start the Application
+
+Development mode:
+
+```bash
+npm run dev
+```
+
+Production mode:
+
+```bash
+npm start
+```
+
+## API Endpoints
+
+- `GET /health` - Health check endpoint
+- `GET /api/users` - List all users
+
+## Security Notes
+
+- Never commit `.env` files to version control
+- Use strong passwords and hash them before storing
+- Implement proper authentication in future phases
+>>>
+```

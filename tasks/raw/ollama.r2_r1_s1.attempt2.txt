@@ -1,0 +1,15 @@
+Based on the given task and workspace context, here are the correct ```sr``` blocks for content editing only:
+
+```sr
+FILE: app.js
+SEARCH:
+<<<
+const calculator = require('./calculator');
+>>>
+REPLACE:
+<<<
+const calculator = require('./lib/calculator');
+>>>
+```
+
+This block will replace the old path `'./calculator'` with the new one `'./lib/calculator'` in the `app.js` file. The rest of the code and content remain unchanged. This is based on the requirement that the paths must be relative to the workspace root.

@@ -1,0 +1,11 @@
+```sr
+FILE: app.js
+SEARCH:
+<<<
+const calculator = require('./calculator');
+>>>
+REPLACE:
+<<<
+const calculator = require('./lib/calculator');
+>>>
+```

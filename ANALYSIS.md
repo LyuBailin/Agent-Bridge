@@ -1,179 +1,127 @@
-# Agent Bridge 架构分析与改进建议
+# Planner Prompt Analysis and Improvement Plan
 
-## 当前问题观察
+## Current Prompt Structure Analysis
 
-在最近的测试中，我们反复卡在 "创建 `lib/` 目录并移动文件" 这个简单任务上。根本原因不是任务复杂，而是**当前的纯 SEARCH/REPLACE 架构对文件级操作不友好**。
+### Current Prompts Overview
 
-## 现有架构分析
+The Planner component in Agent Bridge uses four main prompt functions:
 
-### 优点 ✅
+1. **buildPlanSystemPrompt** - System prompt for initial task decomposition
+2. **buildPlanUserPrompt** - User prompt for initial task decomposition  
+3. **buildReplanSystemPrompt** - System prompt for replanning after failure
+4. **buildReplanUserPrompt** - User prompt for replanning after failure
 
-1. **内容编辑友好**：SEARCH/REPLACE 对代码内容的局部修改非常合适，匹配机制保证了准确性
-2. **无需复杂解析**：相对于完整的 AST 操作或结构化代码生成，简单直接
-3. **原子性好**：每个块独立，容易验证和回滚
-4. **模型适配好**：Claude Code 本身就支持这种格式，模型已经训练过这种输出方式
+### Current Prompt Content Analysis
 
-### 缺点 ❌
+#### Strengths
+- Clear task decomposition into DAG structure
+- Explicit dependency rules for file operations
+- Concise format requirements
+- Basic subtask constraints
 
-1. **文件级操作不自然**：
-   - **删除文件**：要求 SEARCH 匹配**整个文件的完整内容**，REPLACE 设为空。任何细微差异（空格、换行）都会导致匹配失败
-   - **移动文件**：需要两个步骤：(1) 在新位置创建文件（内容复制过去），(2) 删除原文件。两步都容易出错
-   - **重命名文件**：同样需要两个步骤，容易失败
-   - **创建目录**：AI 模型很难理解 "不要显式创建目录，直接创建子文件就行" 这个规则。模型从训练数据中得到的直觉就是要 "先创建目录"，但在当前系统中创建目录只能通过创建一个同名文件，这就导致了冲突
+#### Weaknesses
+1. **Lack of Control Plane Thinking**
+   - No clear boundaries for execution
+   - No failure behavior patterns defined
+   - No explicit reporting responsibilities
 
-2. **对 LLMs 不友好**：
-   - 即使 prompt 反复强调 "不需要创建目录"，规划阶段还是会分解出 "创建 lib 目录" 这样的子任务
-   - LLMs 习惯了文件系统的常规操作方式，很难适应这种 "通过创建文件自动创建目录" 的隐式规则
-   - 删除文件需要精确匹配整个文件内容，对于大文件来说，模型很难输出精确的完整内容
+2. **Missing Engineering Constraints**
+   - No guidelines for code quality
+   - No security considerations
+   - No performance optimization directives
 
-3. **冗余且容易出错**：
-   - 移动一个 10 行的文件，模型需要输出完整的 10 行内容在新位置，再输出完整的 10 行在删除操作中
-   - 内容稍有不同，删除就失败
-   - 这完全是不必要的 token 浪费
+3. **No Priority System**
+   - No clear baseline vs. supplementary tasks
+   - No prioritization criteria for subtasks
 
-## 根本原因分析
+4. **Limited Memory Governance**
+   - No guidance on what information to store
+   - No format specifications for memory
 
-当前的问题反映了一个架构设计的错位：
+5. **Inefficient Cache Structure**
+   - No clear separation between static and dynamic content
+   - No boundary markers for cache optimization
 
-> **SEARCH/REPLACE 是用来编辑文件内容的，不是用来做文件系统操作的。文件系统操作应当使用文件系统原语。**
+6. **Weak Validation Mechanisms**
+   - No explicit validation requirements
+   - No closed-loop feedback mechanisms
 
-环境本身就是 Linux，已经提供了成熟稳定的 `mkdir`、`mv`、`rm` 等命令，系统本身已经具备 Node.js `fs` 模块操作能力，没有必要强迫 AI 用内容编辑的方式来完成文件操作。
+## Improved Prompt Structure
 
-## 改进建议
+### 1. Enhanced Control Plane
 
-### 方案一：扩展语法，支持原生文件操作（推荐）
+**System Prompt Additions:**
+- Explicit execution boundaries and limitations
+- Clear failure behavior patterns
+- Defined reporting responsibilities
+- Strict adherence to workspace constraints
 
-在现有的 SEARCH/REPLACE 块语法基础上，增加新的操作类型：
+### 2. Engineering Constraints
 
-```
-# 创建目录
-```op
-MKDIR: lib/
-```
+**System Prompt Additions:**
+- Code quality guidelines
+- Security best practices
+- Performance optimization directives
+- Maintainability requirements
 
-# 移动/重命名文件
-```op
-MV: calculator.js -> lib/calculator.js
-```
+### 3. Priority System
 
-# 删除文件
-```op
-RM: calculator.js
-```
+**System Prompt Additions:**
+- Baseline vs. supplementary task distinction
+- Subtask prioritization criteria
+- Dependency resolution strategies
 
-这样：
-- AI 可以直接表达文件操作意图
-- 系统底层用原生 `fs` 操作实现，可靠且高效
-- 保留原有的 SEARCH/REPLACE 用于内容编辑
-- 混合操作，各尽其职
+### 4. Memory Governance
 
-### 方案二：在解析层后处理，自动识别转换
+**System Prompt Additions:**
+- Information storage guidelines
+- Memory format specifications
+- Knowledge organization principles
 
-保持现有输出语法不变，在后处理阶段自动识别转换：
-- 如果 AI 输出了 "create lib directory" 并创建了空文件 `lib`，系统自动：
-  - 删除这个空文件
-  - 创建 `lib/` 目录
-- 不需要改变 AI 的输出方式，系统自动纠正
+### 5. Cache Optimization
 
-优点：不改变现有工作流，对现有提示词工程影响最小
-缺点：本质上是 hack，不是优雅的解决方案
+**Prompt Structure Changes:**
+- Clear separation between static and dynamic content
+- Explicit boundary markers
+- Context optimization directives
 
-### 方案三：规划阶段就预处理文件操作任务
+### 6. Validation Mechanisms
 
-在 planner 分解任务时，自动识别出需要创建目录/移动文件/删除文件的操作，并在调用模型之前就：
-- 预先创建好目录
-- 不把这些操作分配给模型去完成
-- 模型只需要负责内容修改（更新 require 路径）
+**System Prompt Additions:**
+- Explicit validation requirements
+- Closed-loop feedback mechanisms
+- Quality assurance protocols
 
-优点：利用现有架构， planner 增加逻辑即可
-缺点：需要 planner 具备识别意图的能力，复杂情况可能出错
+## Implementation Plan
 
-### 方案四：完全切换到结构化 JSON 输出
+### Phase 1: Prompt Structure Overhaul
+1. Redesign `buildPlanSystemPrompt` with enhanced control plane
+2. Update `buildReplanSystemPrompt` with similar improvements
+3. Refactor prompt structure for better cache efficiency
 
-让模型输出结构化的变更计划，包含操作类型、参数等，系统根据操作类型分发：
+### Phase 2: Engineering Constraints Integration
+1. Add code quality guidelines to system prompts
+2. Include security and performance directives
+3. Implement maintainability requirements
 
-```json
-{
-  "changes": [
-    {
-      "type": "mkdir",
-      "path": "lib"
-    },
-    {
-      "type": "move",
-      "from": "calculator.js",
-      "to": "lib/calculator.js"
-    },
-    {
-      "type": "edit",
-      "file": "app.js",
-      "search": "require('./calculator')",
-      "replace": "require('./lib/calculator')"
-    }
-  ]
-}
-```
+### Phase 3: Validation and Feedback Enhancement
+1. Add explicit validation requirements
+2. Implement closed-loop feedback mechanisms
+3. Define quality assurance protocols
 
-优点：最清晰，类型安全
-缺点：需要重新调整 prompt 工程，模型输出需要适配，改动较大
+### Phase 4: Testing and Refinement
+1. Test improved prompts with various task types
+2. Gather feedback on prompt effectiveness
+3. Refine prompts based on performance data
 
-## 推荐的改进路线
+## Expected Outcomes
 
-### 第一步（立即实施）：实现方案一 - 扩展语法
+1. **Improved Task Decomposition:** More accurate and efficient breakdown of complex tasks
+2. **Enhanced Reliability:** Better handling of edge cases and failure scenarios
+3. **Higher Code Quality:** Implementation of engineering best practices
+4. **Increased Efficiency:** Optimized cache usage and context management
+5. **Better Maintainability:** Clearer task structure and dependencies
 
-在 `adapter.js` 中增加对新操作类型的解析，在 `git_manager.js` 中增加对应操作：
+## Conclusion
 
-1. `MKDIR: path` → 调用 `fs.mkdirp` 递归创建目录
-2. `MV: from -> to` → 移动文件，确保目标目录存在
-3. `RM: path` → 删除文件，不需要匹配内容
-
-在 prompt 中说明：
-- "创建目录使用 MKDIR，不要创建空文件"
-- "移动文件使用 MV，不要手动复制再删除"
-- "删除文件使用 RM，不要用 SEARCH/REPLACE 匹配整个文件"
-
-### 第二步（优化）：调整 planner 提示词
-
-更新 planner 提示词，不再分解出 "创建目录" 这样的单独子任务。如果任务说"移动到新目录"，直接：
-- 系统在执行第一步前会自动创建目录
-- 或者由模型通过 `MKDIR` 操作直接创建
-- 不需要一个单独的规划步骤
-
-### 第三步（备选）：如果模型还是不适应，增加后处理自动纠正（方案二）
-
-作为兜底，自动检测：
-- 如果出现了 `lib` 是文件而不是目录，且存在 `lib/` 下文件需要创建，自动删除文件创建目录
-
-## 对当前卡壳问题的具体分析
-
-我们反复在 "创建 lib 目录" 卡壳的原因：
-
-1. ** planner 分解问题** → 错误分解出 "Create the lib directory in workspace" 子任务
-2. **模型不知道怎么用 SEARCH/REPLACE 创建目录** → 只能创建一个名为 `lib` 的空文件
-3. **当这个空文件存在时** → `lib/calculator.js` 无法创建（因为 `lib` 是文件不是目录）
-4. **反馈告诉模型要删除这个文件重新创建** → 模型尝试删除，但删除需要匹配内容，又容易失败
-
-如果有了 `MKDIR lib` 操作：
-- 模型直接输出 `MKDIR: lib`
-- 系统调用 `fs.mkdir` 创建目录，一次成功
-- 不存在冲突问题
-
-## 总体技术评价
-
-### 架构优势
-
-1. **DAG 分解 + 检查点**：这个设计非常好，适合长任务，失败了可以回滚重试，稳健性强
-2. **混合模型路由**：根据难度选择 Ollama/Claude，平衡了成本和质量，思路正确
-3. **导入图上下文扩展**：智能收集相关上下文，减少 token 浪费，很好的优化
-4. **路径安全检查**：有安全意识，防止目录遍历逃逸，设计到位
-5. **git  checkpointing**：利用 git 做回滚和快照，不需要自己实现复杂的回滚逻辑，优雅
-
-### 需要改进的地方
-
-1. **文件操作抽象层次不对**：这是我们这次遇到的核心问题
-2. **依赖模型理解隐式规则**："不需要显式创建目录" 这个规则对人类很简单，但对 LLM 来说违反直觉，很难记住
-3. **删除文件成本太高**：要求匹配完整内容完全是不必要的，直接用 `fs.unlink` 更好
-
-## 总结
-
-整体架构设计得很好，核心思路（DAG 分解、混合模型、检查点回滚）都是正确的。问题出在**文件操作这一块没有提供正确的抽象**。扩展语法增加原生文件操作之后，应该就能解决当前卡壳的问题，让系统更加稳健。
+The current Planner prompts provide a solid foundation but lack the structured approach needed for complex engineering tasks. By implementing the proposed improvements, we can create a more robust, efficient, and reliable task planning system that aligns with modern engineering practices and provides clearer guidance for the language model.

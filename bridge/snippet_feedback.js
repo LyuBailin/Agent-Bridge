@@ -167,4 +167,3 @@ module.exports = {
   collectSnippetsForFile,
   formatSearchGot0Feedback
 };
-

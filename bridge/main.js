@@ -92,7 +92,7 @@ function defaultConfig() {
       semantic_verify: true,
       context_policy: {
         ollama_profiles: { default_8k: { max_tokens: 8000 }, extended_32k: { max_tokens: 32000 } },
-        ollama_profile: "default_8k"
+        ollama_profile: "extended_32k"
       }
     },
     context_limits: {
