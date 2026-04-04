@@ -1,5 +1,6 @@
 const path = require("node:path");
 const fsTools = require("./fs_tools");
+const { buildPlanSystemPrompt, buildPlanUserPrompt, buildReplanSystemPrompt, buildReplanUserPrompt } = require('./prompt/plan');
 
 function nowIso() {
   // Return ISO format in Beijing time (UTC+8)
@@ -621,31 +622,8 @@ async function decomposeTask({ instruction, globalContext, claudeProvider, limit
   }
 
   const schema = buildPlanSchemaJson();
-  const system = [
-    "You are a senior engineering planner.",
-    "Decompose the user's goal into a small DAG (directed acyclic graph) of executable subtasks.",
-    "For high-complexity tasks, break them down into low and medium difficulty subtasks.",
-    `Return at most ${maxSubtasks} subtasks.`,
-    "Each subtask must be independently executable and small (atomic).",
-    "Use stable ids like s1, s2, ...; list dependencies by id.",
-    "target_files must be workspace-relative paths (no absolute paths, no '..', no '.git').",
-    "",
-    "CRITICAL DEPENDENCY RULES:",
-    "- If multiple subtasks edit the SAME FILE, add sequential dependencies (s1 → s2 → s3).",
-    "- For file moves/operations that affect imports, make file edits depend on the file operations.",
-    "- Example: If s1 creates lib/ and s2 moves files to lib/ and s3 updates requires, order must be s1 → s2 → s3.",
-    "- This ensures file state is consistent and SEARCH patterns find matches on first try.",
-    "",
-    "Return JSON matching the provided schema exactly."
-  ].join("\n");
-
-  const user = [
-    "INSTRUCTION:",
-    String(instruction ?? ""),
-    "",
-    "GLOBAL CONTEXT:",
-    String(globalContext ?? "")
-  ].join("\n");
+  const system = buildPlanSystemPrompt(maxSubtasks);
+  const user = buildPlanUserPrompt(instruction, globalContext);
 
   let lastErr = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -808,33 +786,8 @@ async function replanFromFailure({
   }
 
   const schema = buildPlanSchemaJson();
-  const system = [
-    "You are a senior engineering planner.",
-    "Some subtasks have already completed successfully. Keep them as-is.",
-    "Replan the remaining work into a small DAG of subtasks.",
-    `Return at most ${remainingBudget} subtasks.`,
-    "Use ids like r1_s1, r1_s2, ... (unique).",
-    "dependencies may reference completed subtask ids and/or ids within your returned subtasks.",
-    "target_files must be workspace-relative paths (no absolute paths, no '..', no '.git').",
-    "Return JSON matching the provided schema exactly."
-  ].join("\n");
-
-  const user = [
-    "ORIGINAL INSTRUCTION:",
-    String(instruction ?? ""),
-    "",
-    "COMPLETED SUBTASKS:",
-    doneSummary || "(none)",
-    "",
-    "FAILED SUBTASK:",
-    `${failedId}: ${tree.nodes[failedId].description}`,
-    "",
-    "FAILURE CONTEXT:",
-    typeof failureContext === "string" ? failureContext : JSON.stringify(failureContext ?? {}, null, 2),
-    "",
-    "GLOBAL CONTEXT:",
-    String(globalContext ?? "")
-  ].join("\n");
+  const system = buildReplanSystemPrompt(remainingBudget);
+  const user = buildReplanUserPrompt(instruction, doneSummary, failedId, tree.nodes[failedId].description, failureContext, globalContext);
 
   let lastErr = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {

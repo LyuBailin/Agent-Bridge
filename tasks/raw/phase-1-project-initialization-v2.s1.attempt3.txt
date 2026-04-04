@@ -1,0 +1,350 @@
+```op
+MKDIR: frontend
+```
+
+```op
+MKDIR: backend
+```
+
+```op
+MKDIR: backend/src
+```
+
+```op
+MKDIR: backend/config
+```
+
+```op
+MKDIR: backend/database
+```
+
+```op
+MKDIR: backend/routes
+```
+
+```op
+MKDIR: backend/models
+```
+
+```op
+MKDIR: frontend/src
+```
+
+```op
+MKDIR: frontend/public
+```
+
+```op
+RM: app.js
+```
+
+```op
+RM: lib/calculator.js
+```
+
+```op
+RM: lib/greeter.js
+```
+
+```op
+RM: lib
+```
+
+```sr
+FILE: backend/package.json
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+{
+  "name": "phase-1-project",
+  "version": "1.0.0",
+  "description": "Phase 1 Project with Frontend and Backend",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+>>>
+```
+
+```sr
+FILE: backend/.env
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=phase1_db
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+>>>
+```
+
+```sr
+FILE: backend/.gitignore
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+node_modules/
+.env
+*.log
+.DS_Store
+coverage/
+dist/
+build/
+>>>
+```
+
+```sr
+FILE: backend/config/database.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'phase1_db',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+  getClient: () => pool.connect(),
+};
+>>>
+```
+
+```sr
+FILE: backend/database/schema.sql
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+-- Users Table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Profiles Table
+CREATE TABLE IF NOT EXISTS profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  bio TEXT,
+  avatar_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data Tables
+CREATE TABLE IF NOT EXISTS data_records (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  content TEXT,
+  status VARCHAR(50) DEFAULT 'active',
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_data_records_user_id ON data_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_data_records_status ON data_records(status);
+>>>
+```
+
+```sr
+FILE: backend/src/index.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const cors = require('cors');
+const db = require('../config/database');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    await db.query('SELECT NOW()');
+    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ status: 'unhealthy', error: error.message });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+module.exports = app;
+>>>
+```
+
+```sr
+FILE: frontend/package.json
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Frontend application",
+  "scripts": {
+    "start": "serve -s public",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "serve": "^14.2.0"
+  }
+}
+>>>
+```
+
+```sr
+FILE: frontend/.gitignore
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+>>>
+```
+
+```sr
+FILE: frontend/src/App.jsx
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React from 'react';
+
+function App() {
+  return (
+    <div className="App">
+      <h1>Phase 1 Project</h1>
+      <p>Welcome to the application!</p>
+    </div>
+  );
+}
+
+export default App;
+>>>
+```
+
+```sr
+FILE: frontend/src/main.jsx
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+>>>
+```
+
+```sr
+FILE: frontend/index.html
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phase 1 Project</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+>>>
+```

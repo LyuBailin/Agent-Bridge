@@ -38,3 +38,16 @@
 [2026-04-03T22:00:49.352Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
 [2026-04-03T22:00:49.354Z] task test-create-file-direct start
 [2026-04-03T22:02:14.705Z] task test-create-file-direct failed: Exceeded max replans; aborting
+[2026-04-04T18:18:53.950Z] init ok (root=/root/LLM/agent_bridge)
+[2026-04-04T18:19:06.994Z] task phase-1-project-initialization start
+[2026-04-04T18:19:16.161Z] task phase-1-project-initialization failed: fetch failed
+[2026-04-04T18:21:00.051Z] init ok (root=/root/LLM/agent_bridge)
+[2026-04-04T18:21:00.055Z] task phase-1-project-initialization start
+[2026-04-04T18:21:00.056Z] task phase-1-project-initialization skipped (duplicate)
+[2026-04-04T18:21:16.368Z] init ok (root=/root/LLM/agent_bridge)
+[2026-04-04T18:21:16.372Z] task phase-1-project-initialization-v2 start
+[2026-04-04T18:23:29.754Z] task phase-1-project-initialization-v2 failed: Exceeded max replans; aborting
+[2026-04-04T19:11:06.756Z] init ok (root=/root/LLM/agent_bridge)
+[2026-04-04T19:11:06.760Z] task phase-1-project-initialization-v3 start
+[2026-04-04T19:13:56.058Z] task phase-1-project-initialization-v3:r1_s2_retry exceeded max replans, marking as failed
+[2026-04-04T19:13:56.059Z] task phase-1-project-initialization-v3 failed: Exceeded max replans and no independent subtasks remaining; aborting

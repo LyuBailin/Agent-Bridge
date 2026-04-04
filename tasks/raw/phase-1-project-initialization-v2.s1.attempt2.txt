@@ -1,0 +1,286 @@
+```op
+MKDIR: frontend
+```
+
+```op
+MKDIR: backend
+```
+
+```op
+MKDIR: backend/config
+```
+
+```op
+MKDIR: backend/database
+```
+
+```op
+MKDIR: backend/routes
+```
+
+```op
+MKDIR: backend/models
+```
+
+```op
+MKDIR: frontend/src
+```
+
+```op
+MKDIR: frontend/public
+```
+
+```sr
+FILE: package.json
+SEARCH:
+
+REPLACE:
+<<<
+{
+  "name": "phase-1-project",
+  "version": "1.0.0",
+  "description": "Phase 1 Project - Full Stack Application",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+>>>
+```
+
+```sr
+FILE: .env
+SEARCH:
+
+REPLACE:
+<<<
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=phase1_db
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+>>>
+```
+
+```sr
+FILE: .gitignore
+SEARCH:
+
+REPLACE:
+<<<
+node_modules/
+.env
+*.log
+.DS_Store
+coverage/
+dist/
+build/
+>>>
+```
+
+```sr
+FILE: backend/config/database.js
+SEARCH:
+
+REPLACE:
+<<<
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'phase1_db',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+});
+
+pool.on('connect', () => {
+  console.log('Database connected successfully');
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected database error:', err);
+  process.exit(-1);
+});
+
+module.exports = pool;
+>>>
+```
+
+```sr
+FILE: backend/database/schema.sql
+SEARCH:
+
+REPLACE:
+<<<
+-- Users Table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Profiles Table
+CREATE TABLE IF NOT EXISTS profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  bio TEXT,
+  avatar_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data Table
+CREATE TABLE IF NOT EXISTS data_records (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  content TEXT,
+  status VARCHAR(50) DEFAULT 'active',
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_data_records_user_id ON data_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_data_records_status ON data_records(status);
+>>>
+```
+
+```sr
+FILE: backend/database/init-db.js
+SEARCH:
+
+REPLACE:
+<<<
+const pool = require('../config/database');
+const fs = require('fs');
+const path = require('path');
+
+async function initializeDatabase() {
+  try {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    
+    await pool.query(schema);
+    console.log('Database schema initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error.message);
+    throw error;
+  } finally {
+    await pool.end();
+  }
+}
+
+initializeDatabase();
+>>>
+```
+
+```sr
+FILE: backend/server.js
+SEARCH:
+
+REPLACE:
+<<<
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Phase 1 Project API' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+module.exports = app;
+>>>
+```
+
+```sr
+FILE: frontend/package.json
+SEARCH:
+
+REPLACE:
+<<<
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {},
+  "scripts": {
+    "start": "echo 'Frontend setup in progress'",
+    "dev": "echo 'Frontend dev server in progress'"
+  }
+}
+>>>
+```
+
+```sr
+FILE: frontend/index.html
+SEARCH:
+
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 1 Project</title>
+</head>
+<body>
+  <h1>Welcome to Phase 1 Project</h1>
+  <p>Application is loading...</p>
+</body>
+</html>
+>>>
+```

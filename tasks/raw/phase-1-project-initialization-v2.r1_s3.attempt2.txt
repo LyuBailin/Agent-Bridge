@@ -1,0 +1,16 @@
+```sr
+FILE: backend/.env
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+# PostgreSQL Database Configuration
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=phase1_db
+PG_USER=postgres
+PG_PASSWORD=your_password_here
+PG_SSL=false
+<<<
+```
