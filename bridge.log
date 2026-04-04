@@ -1,0 +1,40 @@
+[2026-04-03T10:10:21.869Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T10:10:21.871Z] task openai-difficult start
+[2026-04-03T10:10:21.871Z] task openai-difficult skipped (duplicate)
+[2026-04-03T10:10:37.939Z] task openai-difficult start
+[2026-04-03T10:12:35.481Z] task openai-difficult failed: Claude JSON missing non-empty sr string
+[2026-04-03T19:53:42.989Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T19:53:50.001Z] task openai-difficult start
+[2026-04-03T19:58:13.863Z] task openai-difficult failed: Claude CLI error (exit code 1): no error message
+[2026-04-03T20:16:02.584Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T20:16:08.592Z] task openai-difficult start
+[2026-04-03T20:19:57.134Z] task openai-difficult failed: Claude CLI error (exit code 1): no error message
+[2026-04-03T20:25:24.543Z] task test-openai-routing start
+[2026-04-03T20:28:56.895Z] task test-openai-routing failed: Exceeded max replans; aborting
+[2026-04-03T20:43:41.389Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T20:45:35.118Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T20:45:35.119Z] task test-openai-routing start
+[2026-04-03T20:48:43.393Z] task test-openai-routing:s2 semantic_verify feedback: You need to create two JavaScript files: calculator.js and greeter.js in the src/services/ directory. calculator.js should export basic calculator functions (add, subtract, multiply, divide), and greeter.js should export greeting functions. Both should be properly structured as Node.js modules using module.exports. Please generate these files.
+[2026-04-03T20:49:46.469Z] task test-openai-routing:s2 semantic_verify feedback: You need to create two JavaScript files in the src/services/ directory: 1) calculator.js - exports basic calculator functions (add, subtract, multiply, divide) using module.exports 2) greeter.js - exports greeting functions (e.g., greet, formatGreeting) using module.exports Please generate both files with proper Node.js module exports.
+[2026-04-03T20:49:46.469Z] task test-openai-routing failed: subtaskDifficulty is not defined
+[2026-04-03T21:06:18.157Z] task test-openai-routing-fixed start
+[2026-04-03T21:06:55.600Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:07:22.447Z] task test-openai-routing-fixed failed: Claude CLI error (exit code 1): no error message
+[2026-04-03T21:24:38.401Z] task test-final start
+[2026-04-03T21:24:50.769Z] task test-final ok (attempts=1, changed=true, commit=eafca409ef1376ff9799840c161101a5be24912f)
+[2026-04-03T21:25:04.039Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:27:38.747Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:27:38.749Z] task test-complex start
+[2026-04-03T21:32:17.974Z] task test-complex failed: Exceeded max replans; aborting
+[2026-04-03T21:54:31.704Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:54:31.706Z] task test-structured-complex start
+[2026-04-03T21:54:59.061Z] task test-structured-complex ok (attempts=1, changed=false, commit=null)
+[2026-04-03T21:57:11.726Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:57:11.728Z] task test-create-files start
+[2026-04-03T21:57:37.328Z] task test-create-files ok (attempts=1, changed=false, commit=null)
+[2026-04-03T21:59:58.440Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T21:59:58.441Z] task test-create-single-file start
+[2026-04-03T22:00:14.372Z] task test-create-single-file ok (attempts=1, changed=false, commit=null)
+[2026-04-03T22:00:49.352Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-03T22:00:49.354Z] task test-create-file-direct start
+[2026-04-03T22:02:14.705Z] task test-create-file-direct failed: Exceeded max replans; aborting

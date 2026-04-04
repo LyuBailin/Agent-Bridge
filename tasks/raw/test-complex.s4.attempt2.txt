@@ -1,0 +1,119 @@
+```op
+MKDIR: lib/utils
+```
+
+```sr
+FILE: lib/utils/error.js
+SEARCH:
+
+REPLACE:
+<<<
+class AppError extends Error {
+  constructor(message, statusCode = 500, code = 'INTERNAL_ERROR') {
+    super(message);
+    this.statusCode = statusCode;
+    this.code = code;
+    this.isOperational = true;
+    
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+class ValidationError extends AppError {
+  constructor(message = 'Validation failed', statusCode = 400) {
+    super(message, statusCode, 'VALIDATION_ERROR');
+  }
+}
+
+class NotFoundError extends AppError {
+  constructor(message = 'Resource not found', statusCode = 404) {
+    super(message, statusCode, 'NOT_FOUND');
+  }
+}
+
+class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized access', statusCode = 401) {
+    super(message, statusCode, 'UNAUTHORIZED');
+  }
+}
+
+class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden access', statusCode = 403) {
+    super(message, statusCode, 'FORBIDDEN');
+  }
+}
+
+module.exports = {
+  AppError,
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError,
+  ForbiddenError
+};
+>>>
+```
+
+```sr
+FILE: lib/utils/logger.js
+SEARCH:
+
+REPLACE:
+<<<
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m'
+};
+
+const levels = {
+  error: { color: colors.red, level: 'ERROR' },
+  warn: { color: colors.yellow, level: 'WARN' },
+  info: { color: colors.blue, level: 'INFO' },
+  debug: { color: colors.cyan, level: 'DEBUG' }
+};
+
+let currentLevel = process.env.LOG_LEVEL || 'info';
+
+function formatTimestamp() {
+  return new Date().toISOString();
+}
+
+function log(level, message, data = null) {
+  const config = levels[level];
+  if (!config) return;
+  
+  const timestamp = formatTimestamp();
+  const prefix = `${colors.reset}[${timestamp}] ${config.color}${config.level}${colors.reset}`;
+  
+  let output = `${prefix} ${message}`;
+  
+  if (data) {
+    output += `\n${JSON.stringify(data, null, 2)}`;
+  }
+  
+  console.log(output);
+}
+
+const logger = {
+  error: (message, data) => log('error', message, data),
+  warn: (message, data) => log('warn', message, data),
+  info: (message, data) => log('info', message, data),
+  debug: (message, data) => log('debug', message, data)
+};
+
+function setLogLevel(level) {
+  const validLevels = Object.keys(levels);
+  if (validLevels.includes(level)) {
+    currentLevel = level;
+  } else {
+    logger.warn(`Invalid log level: ${level}. Valid levels: ${validLevels.join(', ')}`);
+  }
+}
+
+module.exports = { logger, setLogLevel };
+>>>
+```

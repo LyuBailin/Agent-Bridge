@@ -1,6 +1,7 @@
-node_modules/
-bridge.log
-.env
-tasks/result.json
-tasks/raw/
+# node_modules/
+# /*.log
+# /*.md 
+# .env
+# tasks/result.json
+# tasks/raw/
 

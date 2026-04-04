@@ -106,6 +106,12 @@ Agent Bridge is a hybrid AI code generation system that automatically converts n
 - `context_limits` - Context size constraints (max files, max bytes)
 - `git` - Git user configuration for commits
 
+### Recent Improvements (Apr 3, 2026)
+
+#### Claude CLI JSON Output Robustness Fix:
+- **Added fallback parsing for Claude CLI output**: When the model ignores JSON schema requirements and outputs ```sr blocks directly instead of wrapping in the `sr` JSON field, the system now automatically falls back to extracting ```sr blocks directly from the raw output. This resolves the common failure mode "Claude JSON missing non-empty sr string" that occurred when the model didn't follow JSON schema instructions.
+- **Improved resliency**: Large language models often ignore JSON schema formatting requirements. This fix makes the system much more robust - if the model outputs valid ```sr blocks in any format, it will be accepted and parsed correctly.
+
 ### Recent Improvements (Mar 31, 2026)
 
 #### Beijing Time Timestamps:
@@ -121,15 +127,15 @@ Agent Bridge is a hybrid AI code generation system that automatically converts n
 
 #### Native File Operation Support (New):
 - Added dedicated file system operations in addition to SEARCH/REPLACE content editing:
-  - ````op
-MKDIR: directory/path
-```` - Creates a directory natively
-  - ````op
-MV: source/file -> target/file
-```` - Moves/renames a file natively
-  - ````op
-RM: path/to/file
-```` - Removes a file natively
+- ````op
+  MKDIR: directory/path
+  ```` - Creates a directory natively
+- ````op
+  MV: source/file -> target/file
+  ```` - Moves/renames a file natively
+- ````op
+  RM: path/to/file
+  ```` - Removes a file natively
 - This eliminates the core problem where models would create a file named `lib` instead of directory `lib/`
 - File operations are handled by native Node.js fs operations, which is faster and more reliable
 - SEARCH/REPLACE is still used for content editing, which is what it's good at

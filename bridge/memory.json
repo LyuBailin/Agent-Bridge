@@ -1,20 +1,232 @@
 {
   "processed": {
-    "openai": {
-      "status": "done",
-      "final_status": "done",
-      "attempts": 1,
-      "commit": "ced6f33f2d1db09bf16f952be89641a877402458",
-      "final_commit": "ced6f33f2d1db09bf16f952be89641a877402458",
-      "difficulty": "medium",
-      "complexity_score": 65,
-      "generator_provider": "openai",
-      "review_provider": "claude_cli",
+    "test-openai-routing": {
+      "status": "failed",
+      "final_status": "failed",
+      "attempts": 3,
+      "commit": null,
+      "error_summary": "subtaskDifficulty is not defined",
+      "diff_stat": null,
       "plan_tree": {
         "schema_version": 1,
-        "task_id": "openai",
-        "created_at": "2026-04-01T10:42:24.415Z",
-        "updated_at": "2026-04-01T10:42:59.025Z",
+        "task_id": "test-openai-routing",
+        "created_at": "2026-04-03T20:46:13.463Z",
+        "updated_at": "2026-04-03T20:49:46.469Z",
+        "replans": 0,
+        "order": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create the new modular directory structure: src/ with controllers, services, models, and utils subdirectories",
+            "target_files": [
+              "src/controllers/",
+              "src/services/",
+              "src/models/",
+              "src/utils/"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T20:46:13.464Z",
+            "finished_at": "2026-04-03T20:47:16.515Z",
+            "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-openai-routing.s1.attempt1.txt"
+            ],
+            "errors": []
+          },
+          "s2": {
+            "id": "s2",
+            "description": "Create/move calculator and greeter functionality into service modules in src/services/",
+            "target_files": [
+              "src/services/calculator.js",
+              "src/services/greeter.js"
+            ],
+            "dependencies": [
+              "s1"
+            ],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T20:47:16.516Z",
+            "finished_at": "2026-04-03T20:49:46.469Z",
+            "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-openai-routing.s2.attempt1.txt",
+              "tasks/raw/test-openai-routing.s2.attempt2.txt",
+              "tasks/raw/test-openai-routing.s2.attempt3.txt"
+            ],
+            "errors": [
+              {
+                "attempt": 1,
+                "stage": "semantic_verify",
+                "message": "semantic verification failed: No files have been created in src/services/. The calculator.js and greeter.js service modules are missing. Task requires creating/moving calculator and greeter functionality into this directory, but it is currently empty.",
+                "details": {
+                  "ok": false,
+                  "issues": [
+                    {
+                      "severity": "blocker",
+                      "message": "No files have been created in src/services/. The calculator.js and greeter.js service modules are missing. Task requires creating/moving calculator and greeter functionality into this directory, but it is currently empty.",
+                      "file": "src/services/"
+                    }
+                  ],
+                  "feedback_for_generator": "You need to create two JavaScript files: calculator.js and greeter.js in the src/services/ directory. calculator.js should export basic calculator functions (add, subtract, multiply, divide), and greeter.js should export greeting functions. Both should be properly structured as Node.js modules using module.exports. Please generate these files."
+                }
+              },
+              {
+                "attempt": 2,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for src/services/calculator.js",
+                "details": null
+              },
+              {
+                "attempt": 3,
+                "stage": "semantic_verify",
+                "message": "semantic verification failed: Required files are missing: calculator.js and greeter.js not found in src/services/ directory. The directory is currently empty.",
+                "details": {
+                  "ok": false,
+                  "issues": [
+                    {
+                      "severity": "blocker",
+                      "message": "Required files are missing: calculator.js and greeter.js not found in src/services/ directory. The directory is currently empty.",
+                      "file": "src/services/"
+                    }
+                  ],
+                  "feedback_for_generator": "You need to create two JavaScript files in the src/services/ directory: 1) calculator.js - exports basic calculator functions (add, subtract, multiply, divide) using module.exports 2) greeter.js - exports greeting functions (e.g., greet, formatGreeting) using module.exports Please generate both files with proper Node.js module exports."
+                }
+              }
+            ]
+          },
+          "s3": {
+            "id": "s3",
+            "description": "Create index.js files for proper module exports in each directory",
+            "target_files": [
+              "src/services/index.js",
+              "src/controllers/index.js"
+            ],
+            "dependencies": [
+              "s2"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s4": {
+            "id": "s4",
+            "description": "Create API controller in src/controllers/ that exposes the calculator and greeter services",
+            "target_files": [
+              "src/controllers/apiController.js"
+            ],
+            "dependencies": [
+              "s3"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s5": {
+            "id": "s5",
+            "description": "Update or create main app.js to use the new modular structure",
+            "target_files": [
+              "app.js"
+            ],
+            "dependencies": [
+              "s4"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s6": {
+            "id": "s6",
+            "description": "Run tests to verify the refactored application works correctly",
+            "target_files": [],
+            "dependencies": [
+              "s5"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T20:46:13.464Z",
+          "finished_at": "2026-04-03T20:47:16.515Z",
+          "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-openai-routing.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "finished_at": "2026-04-03T20:49:46.469Z"
+    },
+    "test-openai-routing-fixed": {
+      "status": "failed",
+      "final_status": "failed",
+      "attempts": 0,
+      "commit": null,
+      "error_summary": "Claude CLI error (exit code 1): no error message",
+      "diff_stat": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-openai-routing-fixed",
+        "created_at": "2026-04-03T21:06:18.227Z",
+        "updated_at": "2026-04-03T21:06:24.116Z",
         "replans": 0,
         "order": [
           "s1"
@@ -22,24 +234,660 @@
         "nodes": {
           "s1": {
             "id": "s1",
-            "description": "Move the calculator.js and greeter.js files from workspace root into a new lib/ directory. Then update the require paths in app.js to point to the new locations. After moving, the module require statements should work correctly with node --check.",
+            "description": "Create a simple calculator application with the following structure: 1) Create a src/services/calculator.js file with basic add, subtract, multiply, divide functions. 2) Create a src/services/greeter.js file with a greet function. 3) Create an app.js file that imports and uses these services. 4) Create a package.json file with basic configuration.",
             "target_files": [
-              "calculator.js",
-              "greeter.js",
-              "lib/",
-              "app.js"
+              "src/services/calculator.js",
+              "src/services/greeter.js",
+              "app.js",
+              "package.json"
+            ],
+            "dependencies": [],
+            "status": "running",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:06:18.229Z",
+            "finished_at": null,
+            "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-openai-routing-fixed.s1.attempt1.txt"
+            ],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [],
+      "replans": 0,
+      "finished_at": "2026-04-03T21:07:22.447Z"
+    },
+    "test-final": {
+      "status": "done",
+      "final_status": "done",
+      "attempts": 1,
+      "commit": "eafca409ef1376ff9799840c161101a5be24912f",
+      "final_commit": "eafca409ef1376ff9799840c161101a5be24912f",
+      "difficulty": "low",
+      "complexity_score": 25,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-final",
+        "created_at": "2026-04-03T21:24:38.491Z",
+        "updated_at": "2026-04-03T21:24:50.750Z",
+        "replans": 0,
+        "order": [
+          "s1"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create a simple hello world application: 1) Create an app.js file that prints 'Hello, World!' to the console. 2) Create a package.json file with basic configuration.",
+            "target_files": [
+              "app.js",
+              "package.json"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": null,
+            "started_at": "2026-04-03T21:24:38.493Z",
+            "finished_at": "2026-04-03T21:24:50.750Z",
+            "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+            "checkpoint_commit_sha": "7a7a025cf14a16068d8b1f73c75d7ba9ed07061e",
+            "raw_outputs": [
+              "tasks/raw/test-final.s1.attempt1.txt"
+            ],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T21:24:38.493Z",
+          "finished_at": "2026-04-03T21:24:50.750Z",
+          "checkpoint_before_sha": "071b9a709986fb941c207721c8905db6a1a1f347",
+          "checkpoint_commit_sha": "7a7a025cf14a16068d8b1f73c75d7ba9ed07061e",
+          "raw_output_paths": [
+            "tasks/raw/test-final.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "error_summary": null,
+      "diff_stat": null,
+      "finished_at": "2026-04-03T21:24:50.761Z"
+    },
+    "test-complex": {
+      "status": "failed",
+      "final_status": "failed",
+      "attempts": 3,
+      "commit": null,
+      "error_summary": "Exceeded max replans; aborting",
+      "diff_stat": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-complex",
+        "created_at": "2026-04-03T21:28:19.354Z",
+        "updated_at": "2026-04-03T21:32:17.974Z",
+        "replans": 3,
+        "order": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6",
+          "s7",
+          "s8",
+          "s9",
+          "s10",
+          "s11",
+          "s12"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create src directory structure with controllers, services, models, utils, views, public, and test subdirectories",
+            "target_files": [
+              "src/controllers/.gitkeep",
+              "src/services/.gitkeep",
+              "src/models/.gitkeep",
+              "src/utils/.gitkeep",
+              "src/views/.gitkeep",
+              "src/public/.gitkeep",
+              "test/.gitkeep"
             ],
             "dependencies": [],
             "status": "done",
             "attempts": 0,
             "generator_provider": "openai",
             "review_provider": "claude_cli",
-            "started_at": "2026-04-01T10:42:24.418Z",
-            "finished_at": "2026-04-01T10:42:59.025Z",
-            "checkpoint_before_sha": "7f52b3b23ce99abf92b31d92f47e9960c578de23",
-            "checkpoint_commit_sha": "204ba783421927d4a41780ef841052b073318b8d",
+            "started_at": "2026-04-03T21:28:19.355Z",
+            "finished_at": "2026-04-03T21:28:37.684Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": null,
             "raw_outputs": [
-              "tasks/raw/openai.s1.attempt1.txt"
+              "tasks/raw/test-complex.s1.attempt1.txt"
+            ],
+            "errors": []
+          },
+          "s2": {
+            "id": "s2",
+            "description": "Update package.json with all required dependencies for the full-stack application",
+            "target_files": [
+              "package.json"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": null,
+            "started_at": "2026-04-03T21:28:37.684Z",
+            "finished_at": "2026-04-03T21:28:43.359Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+            "raw_outputs": [
+              "tasks/raw/test-complex.s2.attempt1.txt"
+            ],
+            "errors": []
+          },
+          "s3": {
+            "id": "s3",
+            "description": "Create database connection and User/Product models with SQLite",
+            "target_files": [
+              "src/models/db.js",
+              "src/models/User.js",
+              "src/models/Product.js"
+            ],
+            "dependencies": [
+              "s1",
+              "s2"
+            ],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:28:43.359Z",
+            "finished_at": "2026-04-03T21:29:22.009Z",
+            "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-complex.s3.attempt1.txt",
+              "tasks/raw/test-complex.s3.attempt2.txt",
+              "tasks/raw/test-complex.s3.attempt3.txt"
+            ],
+            "errors": [
+              {
+                "attempt": 1,
+                "stage": "apply",
+                "message": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on db.js\nOccurrences: 0\nSEARCH preview:\nconsole.log('Hello, World!');\nCurrent file snippets: (unavailable)",
+                "details": {
+                  "occurrences": 0,
+                  "search_preview": "console.log('Hello, World!');",
+                  "search_len": 29,
+                  "change_index": 2,
+                  "search_anchors": [
+                    "console.log('Hello, World!');"
+                  ],
+                  "file": "db.js",
+                  "file_snippets": {
+                    "ok": false,
+                    "relPath": "db.js",
+                    "max_chars": 4000,
+                    "truncated": false,
+                    "snippets": [],
+                    "error": "read failed: ENOENT: no such file or directory, open '/home/lyublin/LLM/Agent-Bridge/workspace/db.js'"
+                  },
+                  "snippet_feedback": "SEARCH mismatch (got 0) on db.js\nOccurrences: 0\nSEARCH preview:\nconsole.log('Hello, World!');\nCurrent file snippets: (unavailable)"
+                }
+              },
+              {
+                "attempt": 2,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for db.js",
+                "details": null
+              },
+              {
+                "attempt": 3,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for db.js",
+                "details": null
+              },
+              {
+                "attempt": 0,
+                "stage": "replan",
+                "message": "planTree exceeds max_subtasks (12)",
+                "details": null
+              }
+            ]
+          },
+          "s4": {
+            "id": "s4",
+            "description": "Create utility modules for error handling and logging",
+            "target_files": [
+              "src/utils/errorHandler.js",
+              "src/utils/logger.js",
+              "src/utils/validation.js"
+            ],
+            "dependencies": [
+              "s1"
+            ],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:30:19.693Z",
+            "finished_at": "2026-04-03T21:30:50.493Z",
+            "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-complex.s4.attempt1.txt",
+              "tasks/raw/test-complex.s4.attempt2.txt",
+              "tasks/raw/test-complex.s4.attempt3.txt"
+            ],
+            "errors": [
+              {
+                "attempt": 1,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for lib/utils/error.js",
+                "details": null
+              },
+              {
+                "attempt": 2,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for lib/utils/error.js",
+                "details": null
+              },
+              {
+                "attempt": 3,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for lib/utils/error.js",
+                "details": null
+              },
+              {
+                "attempt": 0,
+                "stage": "replan",
+                "message": "planTree exceeds max_subtasks (12)",
+                "details": null
+              }
+            ]
+          },
+          "s5": {
+            "id": "s5",
+            "description": "Implement authentication service with registration, login, and password hashing",
+            "target_files": [
+              "src/services/auth.service.js"
+            ],
+            "dependencies": [
+              "s1",
+              "s3"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s6": {
+            "id": "s6",
+            "description": "Implement product CRUD service with create/read/update/delete operations",
+            "target_files": [
+              "src/services/product.service.js"
+            ],
+            "dependencies": [
+              "s1",
+              "s3"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s7": {
+            "id": "s7",
+            "description": "Create authentication controllers for login and registration endpoints",
+            "target_files": [
+              "src/controllers/auth.controller.js"
+            ],
+            "dependencies": [
+              "s1",
+              "s5"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s8": {
+            "id": "s8",
+            "description": "Create product controllers for CRUD endpoints",
+            "target_files": [
+              "src/controllers/product.controller.js"
+            ],
+            "dependencies": [
+              "s1",
+              "s6"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s9": {
+            "id": "s9",
+            "description": "Create EJS view templates for all frontend pages",
+            "target_files": [
+              "src/views/layout.ejs",
+              "src/views/login.ejs",
+              "src/views/register.ejs",
+              "src/views/products.ejs",
+              "src/views/product-form.ejs"
+            ],
+            "dependencies": [
+              "s1"
+            ],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:31:49.001Z",
+            "finished_at": "2026-04-03T21:32:17.963Z",
+            "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-complex.s9.attempt1.txt",
+              "tasks/raw/test-complex.s9.attempt2.txt",
+              "tasks/raw/test-complex.s9.attempt3.txt"
+            ],
+            "errors": [
+              {
+                "attempt": 1,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for views/index.ejs",
+                "details": null
+              },
+              {
+                "attempt": 2,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for views/index.ejs",
+                "details": null
+              },
+              {
+                "attempt": 3,
+                "stage": "parse",
+                "message": "sr block missing SEARCH for views/index.ejs",
+                "details": null
+              }
+            ]
+          },
+          "s10": {
+            "id": "s10",
+            "description": "Set up main Express app with middleware, routes, and global error handling",
+            "target_files": [
+              "app.js",
+              "src/routes.js"
+            ],
+            "dependencies": [
+              "s4",
+              "s7",
+              "s8",
+              "s9"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s11": {
+            "id": "s11",
+            "description": "Implement unit tests for authentication and product services",
+            "target_files": [
+              "test/auth.service.test.js",
+              "test/product.service.test.js"
+            ],
+            "dependencies": [
+              "s2",
+              "s3",
+              "s5",
+              "s6"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          },
+          "s12": {
+            "id": "s12",
+            "description": "Install dependencies and verify application starts correctly",
+            "target_files": [],
+            "dependencies": [
+              "s1",
+              "s2",
+              "s3",
+              "s4",
+              "s5",
+              "s6",
+              "s7",
+              "s8",
+              "s9",
+              "s10",
+              "s11"
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "generator_provider": null,
+            "review_provider": null,
+            "started_at": null,
+            "finished_at": null,
+            "checkpoint_before_sha": null,
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:28:19.355Z",
+          "finished_at": "2026-04-03T21:28:37.684Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-complex.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        },
+        {
+          "subtask_id": "s2",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T21:28:37.684Z",
+          "finished_at": "2026-04-03T21:28:43.359Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+          "raw_output_paths": [
+            "tasks/raw/test-complex.s2.attempt1.txt"
+          ],
+          "error_summary": null
+        },
+        {
+          "subtask_id": "s3",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:28:43.359Z",
+          "finished_at": "2026-04-03T21:29:22.009Z",
+          "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-complex.s3.attempt1.txt",
+            "tasks/raw/test-complex.s3.attempt2.txt",
+            "tasks/raw/test-complex.s3.attempt3.txt"
+          ],
+          "error_summary": "sr block missing SEARCH for db.js"
+        },
+        {
+          "subtask_id": "s4",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:30:19.693Z",
+          "finished_at": "2026-04-03T21:30:50.493Z",
+          "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-complex.s4.attempt1.txt",
+            "tasks/raw/test-complex.s4.attempt2.txt",
+            "tasks/raw/test-complex.s4.attempt3.txt"
+          ],
+          "error_summary": "sr block missing SEARCH for lib/utils/error.js"
+        },
+        {
+          "subtask_id": "s9",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:31:49.001Z",
+          "finished_at": "2026-04-03T21:32:17.963Z",
+          "checkpoint_before_sha": "b653ed6923bf4a59f454e49d7d9f008201fed76b",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-complex.s9.attempt1.txt",
+            "tasks/raw/test-complex.s9.attempt2.txt",
+            "tasks/raw/test-complex.s9.attempt3.txt"
+          ],
+          "error_summary": "sr block missing SEARCH for views/index.ejs"
+        }
+      ],
+      "replans": 3,
+      "finished_at": "2026-04-03T21:32:17.974Z"
+    },
+    "test-structured-complex": {
+      "status": "done",
+      "final_status": "done",
+      "attempts": 1,
+      "commit": null,
+      "final_commit": null,
+      "difficulty": "medium",
+      "complexity_score": 65,
+      "generator_provider": "openai",
+      "review_provider": "claude_cli",
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-structured-complex",
+        "created_at": "2026-04-03T21:54:31.719Z",
+        "updated_at": "2026-04-03T21:54:59.054Z",
+        "replans": 0,
+        "order": [
+          "s1"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create a structured full-stack application with the following steps: 1) First, create the directory structure: src/controllers/, src/services/, src/models/, src/utils/, src/views/, and test/. 2) Create empty placeholder files in each directory: src/controllers/auth.js, src/controllers/products.js, src/services/auth.js, src/services/products.js, src/models/user.js, src/models/product.js, src/utils/error.js, src/utils/logger.js, src/views/login.ejs, src/views/products.ejs, test/auth.test.js, test/products.test.js, app.js, and package.json.",
+            "target_files": [
+              "src/controllers/",
+              "src/services/",
+              "src/models/",
+              "src/utils/",
+              "src/views/",
+              "test",
+              "src/controllers/auth.js",
+              "src/controllers/products.js",
+              "src/services/auth.js",
+              "src/services/products.js",
+              "src/models/user.js",
+              "src/models/product.js",
+              "src/utils/error.js",
+              "src/utils/logger.js",
+              "src/views/login.ejs",
+              "src/views/products.ejs",
+              "test/auth.test.js",
+              "test/products.test.js"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:54:31.719Z",
+            "finished_at": "2026-04-03T21:54:59.054Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-structured-complex.s1.attempt1.txt"
             ],
             "errors": []
           }
@@ -56,12 +904,13 @@
           "attempts": 1,
           "generator_provider": "openai",
           "review_provider": "claude_cli",
-          "started_at": "2026-04-01T10:42:24.418Z",
-          "finished_at": "2026-04-01T10:42:59.025Z",
-          "checkpoint_before_sha": "7f52b3b23ce99abf92b31d92f47e9960c578de23",
-          "checkpoint_commit_sha": "204ba783421927d4a41780ef841052b073318b8d",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:54:31.719Z",
+          "finished_at": "2026-04-03T21:54:59.054Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": null,
           "raw_output_paths": [
-            "tasks/raw/openai.s1.attempt1.txt"
+            "tasks/raw/test-structured-complex.s1.attempt1.txt"
           ],
           "error_summary": null
         }
@@ -69,9 +918,159 @@
       "replans": 0,
       "error_summary": null,
       "diff_stat": null,
-      "finished_at": "2026-04-01T10:42:59.055Z"
+      "finished_at": "2026-04-03T21:54:59.056Z"
     },
-    "ollama": {
+    "test-create-files": {
+      "status": "done",
+      "final_status": "done",
+      "attempts": 1,
+      "commit": null,
+      "final_commit": null,
+      "difficulty": "medium",
+      "complexity_score": 65,
+      "generator_provider": "openai",
+      "review_provider": "claude_cli",
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-create-files",
+        "created_at": "2026-04-03T21:57:11.740Z",
+        "updated_at": "2026-04-03T21:57:37.320Z",
+        "replans": 0,
+        "order": [
+          "s1"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create the following files in the workspace directory: 1) src/controllers/auth.js 2) src/controllers/products.js 3) src/services/auth.js 4) src/services/products.js 5) src/models/user.js 6) src/models/product.js 7) src/utils/error.js 8) src/utils/logger.js 9) src/views/login.ejs 10) src/views/products.ejs 11) test/auth.test.js 12) test/products.test.js 13) app.js 14) package.json. Create empty files if they don't exist.",
+            "target_files": [
+              "src/controllers/auth.js",
+              "src/controllers/products.js",
+              "src/services/auth.js",
+              "src/services/products.js",
+              "src/models/user.js",
+              "src/models/product.js",
+              "src/utils/error.js",
+              "src/utils/logger.js",
+              "src/views/login.ejs",
+              "src/views/products.ejs",
+              "test/auth.test.js",
+              "test/products.test.js",
+              "app.js"
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": "claude_cli",
+            "started_at": "2026-04-03T21:57:11.741Z",
+            "finished_at": "2026-04-03T21:57:37.320Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-create-files.s1.attempt1.txt"
+            ],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": "claude_cli",
+          "difficulty": "medium",
+          "started_at": "2026-04-03T21:57:11.741Z",
+          "finished_at": "2026-04-03T21:57:37.320Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-create-files.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "error_summary": null,
+      "diff_stat": null,
+      "finished_at": "2026-04-03T21:57:37.322Z"
+    },
+    "test-create-single-file": {
+      "status": "done",
+      "final_status": "done",
+      "attempts": 1,
+      "commit": null,
+      "final_commit": null,
+      "difficulty": "low",
+      "complexity_score": 10,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "plan_tree": {
+        "schema_version": 1,
+        "task_id": "test-create-single-file",
+        "created_at": "2026-04-03T21:59:58.452Z",
+        "updated_at": "2026-04-03T22:00:14.363Z",
+        "replans": 0,
+        "order": [
+          "s1"
+        ],
+        "nodes": {
+          "s1": {
+            "id": "s1",
+            "description": "Create a single file in the workspace directory: src/controllers/auth.js. Create an empty file if it doesn't exist.",
+            "target_files": [
+              "src/controllers/auth.js."
+            ],
+            "dependencies": [],
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": null,
+            "started_at": "2026-04-03T21:59:58.453Z",
+            "finished_at": "2026-04-03T22:00:14.363Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-create-single-file.s1.attempt1.txt"
+            ],
+            "errors": []
+          }
+        },
+        "limits": {
+          "max_subtasks": 12,
+          "max_replans": 2
+        }
+      },
+      "execution_trace": [
+        {
+          "subtask_id": "s1",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T21:59:58.453Z",
+          "finished_at": "2026-04-03T22:00:14.364Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-create-single-file.s1.attempt1.txt"
+          ],
+          "error_summary": null
+        }
+      ],
+      "replans": 0,
+      "error_summary": null,
+      "diff_stat": null,
+      "finished_at": "2026-04-03T22:00:14.365Z"
+    },
+    "test-create-file-direct": {
       "status": "failed",
       "final_status": "failed",
       "attempts": 3,
@@ -80,104 +1079,75 @@
       "diff_stat": null,
       "plan_tree": {
         "schema_version": 1,
-        "task_id": "ollama",
-        "created_at": "2026-04-01T10:55:56.902Z",
-        "updated_at": "2026-04-01T10:57:42.114Z",
+        "task_id": "test-create-file-direct",
+        "created_at": "2026-04-03T22:00:49.363Z",
+        "updated_at": "2026-04-03T22:02:14.704Z",
         "replans": 3,
         "order": [
-          "r2_r1_s1"
+          "r1_s1",
+          "r2_r1_s2"
         ],
         "nodes": {
-          "r2_r1_s1": {
-            "id": "r2_r1_s1",
-            "description": "Verify that node --check passes on app.js with updated paths",
+          "r1_s1": {
+            "id": "r1_s1",
+            "description": "Create src/controllers directory structure",
             "target_files": [
-              "app.js",
-              "lib/calculator.js",
-              "lib/greeter.js"
+              "workspace/src/controllers"
             ],
             "dependencies": [],
-            "status": "failed",
-            "attempts": 3,
-            "generator_provider": "ollama",
-            "review_provider": "claude_cli",
-            "started_at": "2026-04-01T10:57:35.646Z",
-            "finished_at": "2026-04-01T10:57:42.082Z",
-            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+            "status": "done",
+            "attempts": 0,
+            "generator_provider": "openai",
+            "review_provider": null,
+            "started_at": "2026-04-03T22:01:29.799Z",
+            "finished_at": "2026-04-03T22:01:38.017Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
             "checkpoint_commit_sha": null,
             "raw_outputs": [
-              "tasks/raw/ollama.r2_r1_s1.attempt1.txt",
-              "tasks/raw/ollama.r2_r1_s1.attempt2.txt",
-              "tasks/raw/ollama.r2_r1_s1.attempt3.txt"
+              "tasks/raw/test-create-file-direct.r1_s1.attempt1.txt"
+            ],
+            "errors": []
+          },
+          "r2_r1_s2": {
+            "id": "r2_r1_s2",
+            "description": "Create auth.js file with content '// Auth controller'",
+            "target_files": [
+              "workspace/src/controllers/auth.js"
+            ],
+            "dependencies": [
+              "r1_s1"
+            ],
+            "status": "failed",
+            "attempts": 3,
+            "generator_provider": "openai",
+            "review_provider": null,
+            "started_at": "2026-04-03T22:02:03.858Z",
+            "finished_at": "2026-04-03T22:02:14.693Z",
+            "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+            "checkpoint_commit_sha": null,
+            "raw_outputs": [
+              "tasks/raw/test-create-file-direct.r2_r1_s2.attempt1.txt",
+              "tasks/raw/test-create-file-direct.r2_r1_s2.attempt2.txt",
+              "tasks/raw/test-create-file-direct.r2_r1_s2.attempt3.txt"
             ],
             "errors": [
               {
                 "attempt": 1,
-                "stage": "apply",
-                "message": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:",
-                "details": {
-                  "occurrences": 0,
-                  "search_preview": "const calculator = require('./lib/calculator');",
-                  "search_len": 47,
-                  "change_index": 0,
-                  "search_anchors": [
-                    "const calculator = require('./lib/calculator');"
-                  ],
-                  "file": "app.js",
-                  "file_snippets": {
-                    "ok": true,
-                    "relPath": "app.js",
-                    "max_chars": 4000,
-                    "truncated": false,
-                    "snippets": [
-                      {
-                        "kind": "head",
-                        "start_line": 1,
-                        "end_line": 6,
-                        "text": "   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6: "
-                      }
-                    ],
-                    "error": null
-                  },
-                  "snippet_feedback": "SEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
-                }
+                "stage": "parse",
+                "message": "sr block missing SEARCH for auth.js",
+                "details": null
               },
               {
                 "attempt": 2,
                 "stage": "parse",
-                "message": "sr block missing FILE:",
+                "message": "sr block missing SEARCH for auth.js",
                 "details": null
               },
               {
                 "attempt": 3,
-                "stage": "apply",
-                "message": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:",
-                "details": {
-                  "occurrences": 0,
-                  "search_preview": "const calculator = require('./lib/calculator');",
-                  "search_len": 47,
-                  "change_index": 0,
-                  "search_anchors": [
-                    "const calculator = require('./lib/calculator');"
-                  ],
-                  "file": "app.js",
-                  "file_snippets": {
-                    "ok": true,
-                    "relPath": "app.js",
-                    "max_chars": 4000,
-                    "truncated": false,
-                    "snippets": [
-                      {
-                        "kind": "head",
-                        "start_line": 1,
-                        "end_line": 6,
-                        "text": "   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6: "
-                      }
-                    ],
-                    "error": null
-                  },
-                  "snippet_feedback": "SEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
-                }
+                "stage": "parse",
+                "message": "sr block missing SEARCH for auth.js",
+                "details": null
               }
             ]
           }
@@ -192,279 +1162,75 @@
           "subtask_id": "s1",
           "status": "failed",
           "attempts": 3,
-          "generator_provider": "ollama",
-          "review_provider": "claude_cli",
-          "started_at": "2026-04-01T10:55:56.905Z",
-          "finished_at": "2026-04-01T10:57:06.084Z",
-          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T22:00:49.364Z",
+          "finished_at": "2026-04-03T22:01:04.577Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
           "checkpoint_commit_sha": null,
           "raw_output_paths": [
-            "tasks/raw/ollama.s1.attempt1.txt",
-            "tasks/raw/ollama.s1.attempt2.txt",
-            "tasks/raw/ollama.s1.attempt3.txt"
+            "tasks/raw/test-create-file-direct.s1.attempt1.txt",
+            "tasks/raw/test-create-file-direct.s1.attempt2.txt",
+            "tasks/raw/test-create-file-direct.s1.attempt3.txt"
           ],
-          "error_summary": "Source file does not exist: calculator.js"
+          "error_summary": "sr block missing SEARCH for src/controllers/auth.js"
         },
         {
           "subtask_id": "r1_s1",
-          "status": "failed",
-          "attempts": 3,
-          "generator_provider": "ollama",
-          "review_provider": "claude_cli",
-          "started_at": "2026-04-01T10:57:16.910Z",
-          "finished_at": "2026-04-01T10:57:25.638Z",
-          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "status": "done",
+          "attempts": 1,
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T22:01:29.799Z",
+          "finished_at": "2026-04-03T22:01:38.017Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
           "checkpoint_commit_sha": null,
           "raw_output_paths": [
-            "tasks/raw/ollama.r1_s1.attempt1.txt",
-            "tasks/raw/ollama.r1_s1.attempt2.txt",
-            "tasks/raw/ollama.r1_s1.attempt3.txt"
+            "tasks/raw/test-create-file-direct.r1_s1.attempt1.txt"
           ],
-          "error_summary": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+          "error_summary": null
         },
         {
-          "subtask_id": "r2_r1_s1",
+          "subtask_id": "r1_s2",
           "status": "failed",
           "attempts": 3,
-          "generator_provider": "ollama",
-          "review_provider": "claude_cli",
-          "started_at": "2026-04-01T10:57:35.646Z",
-          "finished_at": "2026-04-01T10:57:42.082Z",
-          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T22:01:38.018Z",
+          "finished_at": "2026-04-03T22:01:45.112Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
           "checkpoint_commit_sha": null,
           "raw_output_paths": [
-            "tasks/raw/ollama.r2_r1_s1.attempt1.txt",
-            "tasks/raw/ollama.r2_r1_s1.attempt2.txt",
-            "tasks/raw/ollama.r2_r1_s1.attempt3.txt"
+            "tasks/raw/test-create-file-direct.r1_s2.attempt1.txt",
+            "tasks/raw/test-create-file-direct.r1_s2.attempt2.txt",
+            "tasks/raw/test-create-file-direct.r1_s2.attempt3.txt"
           ],
-          "error_summary": "SEARCH must match exactly once (got 0)\n\nSEARCH mismatch (got 0) on app.js\nOccurrences: 0\nSEARCH preview:\nconst calculator = require('./lib/calculator');\nCurrent file snippets:\n---- HEAD (first 40 lines) ----\n   1: const { add, subtract, multiply, divide } = require('./lib/calculator');\n   2: const { greet } = require('./lib/greeter');\n   3: \n   4: console.log('Calc:', add(2, 3));\n   5: console.log(greet('World'));\n   6:"
+          "error_summary": "sr block missing SEARCH for auth.js"
+        },
+        {
+          "subtask_id": "r2_r1_s2",
+          "status": "failed",
+          "attempts": 3,
+          "generator_provider": "openai",
+          "review_provider": null,
+          "difficulty": "low",
+          "started_at": "2026-04-03T22:02:03.858Z",
+          "finished_at": "2026-04-03T22:02:14.693Z",
+          "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+          "checkpoint_commit_sha": null,
+          "raw_output_paths": [
+            "tasks/raw/test-create-file-direct.r2_r1_s2.attempt1.txt",
+            "tasks/raw/test-create-file-direct.r2_r1_s2.attempt2.txt",
+            "tasks/raw/test-create-file-direct.r2_r1_s2.attempt3.txt"
+          ],
+          "error_summary": "sr block missing SEARCH for auth.js"
         }
       ],
       "replans": 3,
-      "finished_at": "2026-04-01T10:57:42.114Z"
-    },
-    "openai-difficult": {
-      "status": "failed",
-      "final_status": "failed",
-      "attempts": 0,
-      "commit": null,
-      "error_summary": "Claude CLI timeout after 120000ms",
-      "diff_stat": null,
-      "plan_tree": {
-        "schema_version": 1,
-        "task_id": "openai-difficult",
-        "created_at": "2026-04-01T11:49:33.990Z",
-        "updated_at": "2026-04-01T11:50:14.534Z",
-        "replans": 0,
-        "order": [
-          "s1",
-          "s2",
-          "s3",
-          "s4",
-          "s5",
-          "s6",
-          "s7",
-          "s8"
-        ],
-        "nodes": {
-          "s1": {
-            "id": "s1",
-            "description": "Create src/ and tests/ directory structure with required subdirectories",
-            "target_files": [
-              "src/controllers",
-              "src/services",
-              "src/utils",
-              "src/models",
-              "tests/services",
-              "tests/controllers"
-            ],
-            "dependencies": [],
-            "status": "done",
-            "attempts": 0,
-            "generator_provider": "claude_cli",
-            "review_provider": "claude_cli",
-            "started_at": "2026-04-01T11:49:33.993Z",
-            "finished_at": "2026-04-01T11:50:14.529Z",
-            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [
-              "tasks/raw/openai-difficult.s1.attempt1.txt"
-            ],
-            "errors": []
-          },
-          "s2": {
-            "id": "s2",
-            "description": "Move and refactor calculator.js and greeter.js into service modules in src/services",
-            "target_files": [
-              "src/services/calculator.service.js",
-              "src/services/greeter.service.js"
-            ],
-            "dependencies": [
-              "s1"
-            ],
-            "status": "running",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": "2026-04-01T11:50:14.529Z",
-            "finished_at": null,
-            "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s3": {
-            "id": "s3",
-            "description": "Implement error handling and logging utilities in src/utils",
-            "target_files": [
-              "src/utils/errorHandler.js",
-              "src/utils/logger.js"
-            ],
-            "dependencies": [
-              "s1"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s4": {
-            "id": "s4",
-            "description": "Create API controller exposing services via HTTP endpoints",
-            "target_files": [
-              "src/controllers/api.controller.js"
-            ],
-            "dependencies": [
-              "s2",
-              "s3"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s5": {
-            "id": "s5",
-            "description": "Update main app.js to use new modular architecture and start HTTP server",
-            "target_files": [
-              "app.js"
-            ],
-            "dependencies": [
-              "s2",
-              "s3",
-              "s4"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s6": {
-            "id": "s6",
-            "description": "Add unit tests for calculator and greeter services",
-            "target_files": [
-              "tests/services/calculator.service.test.js",
-              "tests/services/greeter.service.test.js"
-            ],
-            "dependencies": [
-              "s2"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s7": {
-            "id": "s7",
-            "description": "Add unit tests for API controller",
-            "target_files": [
-              "tests/controllers/api.controller.test.js"
-            ],
-            "dependencies": [
-              "s4",
-              "s3"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          },
-          "s8": {
-            "id": "s8",
-            "description": "Initialize package.json and run all tests to verify they pass",
-            "target_files": [
-              "package.json"
-            ],
-            "dependencies": [
-              "s6",
-              "s7"
-            ],
-            "status": "pending",
-            "attempts": 0,
-            "generator_provider": null,
-            "review_provider": null,
-            "started_at": null,
-            "finished_at": null,
-            "checkpoint_before_sha": null,
-            "checkpoint_commit_sha": null,
-            "raw_outputs": [],
-            "errors": []
-          }
-        },
-        "limits": {
-          "max_subtasks": 12,
-          "max_replans": 2
-        }
-      },
-      "execution_trace": [
-        {
-          "subtask_id": "s1",
-          "status": "done",
-          "attempts": 1,
-          "generator_provider": "claude_cli",
-          "review_provider": "claude_cli",
-          "started_at": "2026-04-01T11:49:33.993Z",
-          "finished_at": "2026-04-01T11:50:14.529Z",
-          "checkpoint_before_sha": "ced6f33f2d1db09bf16f952be89641a877402458",
-          "checkpoint_commit_sha": null,
-          "raw_output_paths": [
-            "tasks/raw/openai-difficult.s1.attempt1.txt"
-          ],
-          "error_summary": null
-        }
-      ],
-      "replans": 0,
-      "finished_at": "2026-04-01T11:52:12.791Z"
+      "finished_at": "2026-04-03T22:02:14.705Z"
     }
   }
 }

@@ -4,7 +4,7 @@ const fsTools = require("./fs_tools");
 function nowIso() {
   // Return ISO format in Beijing time (UTC+8)
   const now = new Date();
-  // Add 8 hours to convert to Beijing time
+  // Convert to Beijing time (UTC+8)
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   return beijingTime.toISOString();
 }
