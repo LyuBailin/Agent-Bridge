@@ -1,0 +1,39 @@
+```sr
+FILE: package.json
+SEARCH:
+<<<
+{
+  "name": "hello-world",
+  "version": "1.0.0",
+  "description": "A simple hello world application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+>>>
+REPLACE:
+<<<
+{
+  "name": "hello-world",
+  "version": "1.0.0",
+  "description": "A simple hello world application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}
+>>>
+```

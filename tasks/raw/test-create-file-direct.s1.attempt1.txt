@@ -1,0 +1,9 @@
+```sr
+FILE: src/controllers/auth.js
+SEARCH:
+
+REPLACE:
+<<<
+// Auth controller
+>>>
+```

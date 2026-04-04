@@ -1,0 +1,8 @@
+```op
+MKDIR: src/controllers
+MKDIR: src/services
+MKDIR: src/models
+MKDIR: src/utils
+MKDIR: src/views
+MKDIR: test
+```

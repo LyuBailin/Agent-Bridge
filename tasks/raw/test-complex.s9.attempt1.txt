@@ -1,0 +1,181 @@
+```sr
+FILE: package.json
+SEARCH:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+>>>
+REPLACE:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9"
+  }
+>>>
+```
+
+```sr
+FILE: app.js
+SEARCH:
+<<<
+console.log('Hello, World!');
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes
+app.get('/', (req, res) => {
+  res.render('index', { title: 'Home Page' });
+});
+
+app.get('/about', (req, res) => {
+  res.render('about', { title: 'About Us' });
+});
+
+app.get('/contact', (req, res) => {
+  res.render('contact', { title: 'Contact Us' });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+>>>
+```
+
+```op
+MKDIR: views
+```
+
+```sr
+FILE: views/index.ejs
+SEARCH:
+
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Welcome to Our Website</h1>
+    <p>This is the home page.</p>
+  </main>
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> All Rights Reserved</p>
+  </footer>
+</body>
+</html>
+>>>
+```
+
+```sr
+FILE: views/about.ejs
+SEARCH:
+
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <h1>About Us</h1>
+    <p>Learn more about our company and mission.</p>
+  </main>
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> All Rights Reserved</p>
+  </footer>
+</body>
+</html>
+>>>
+```
+
+```sr
+FILE: views/contact.ejs
+SEARCH:
+
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Contact Us</h1>
+    <form action="/contact" method="POST">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+      
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required>
+      
+      <label for="message">Message:</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+      
+      <button type="submit">Send Message</button>
+    </form>
+  </main>
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> All Rights Reserved</p>
+  </footer>
+</body>
+</html>
+>>>
+```

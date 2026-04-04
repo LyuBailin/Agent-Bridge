@@ -1,0 +1,46 @@
+```op
+MKDIR: views
+```
+
+```sr
+FILE: package.json
+SEARCH:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+>>>
+REPLACE:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9"
+  }
+>>>
+```
+
+```sr
+FILE: views/index.ejs
+SEARCH:
+
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello World</title>
+</head>
+<body>
+  <h1>Welcome to Hello World!</h1>
+</body>
+</html>
+>>>
+```

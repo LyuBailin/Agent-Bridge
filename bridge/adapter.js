@@ -9,8 +9,9 @@ const claudeLogPath = path.join(__dirname, "..", "claude.log");
 async function logClaudeMessage(message) {
   // Return ISO format in Beijing time (UTC+8)
   const now = new Date();
-  // Add 8 hours to convert to Beijing time
+  // Convert to Beijing time (UTC+8)
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  
   const timestamp = beijingTime.toISOString();
   const logMessage = `[${timestamp}] ${message}\n`;
   try {
@@ -740,10 +741,22 @@ function createProvider(type, config = {}) {
         });
 
         ensureObject(json, "Claude JSON");
-        if (typeof json.sr !== "string" || json.sr.trim() === "") {
-          throw new Error("Claude JSON missing non-empty sr string");
+        // Case 1: Proper JSON with sr field - use it directly
+        if (typeof json.sr === "string" && json.sr.trim() !== "") {
+          return json.sr;
         }
-        return json.sr;
+        // Case 2: JSON schema failed, but the raw output from Claude CLI might already
+        // contain the correct ```sr blocks in the response - extract them directly as fallback
+        if (typeof json.output === "string" && json.output.trim() !== "") {
+          // Check if output contains ```sr blocks
+          const hasSrBlocks = /```sr/.test(json.output);
+          if (hasSrBlocks) {
+            await logClaudeMessage("Fallback: using direct sr block extraction from JSON output (json.sr was empty)");
+            return json.output;
+          }
+        }
+        // If we get here, really no sr content
+        throw new Error("Claude JSON missing non-empty sr string");
       },
       async generateJson({ system, user, schema, timeout_ms }) {
         const mock = await readMockTextFromEnv({

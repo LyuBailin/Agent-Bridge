@@ -1,0 +1,221 @@
+{
+  "task_id": "test-create-file-direct",
+  "ok": false,
+  "changed": false,
+  "commit": null,
+  "summary": "failed; rolled back",
+  "error": "Exceeded max replans; aborting",
+  "raw_output_path": "tasks/raw/test-create-file-direct.r2_r1_s2.attempt3.txt",
+  "attempts": 3,
+  "errors": [
+    {
+      "attempt": 1,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for src/controllers/auth.js",
+      "details": null
+    },
+    {
+      "attempt": 2,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for src/controllers/auth.js",
+      "details": null
+    },
+    {
+      "attempt": 3,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for src/controllers/auth.js",
+      "details": null
+    },
+    {
+      "attempt": 1,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    },
+    {
+      "attempt": 2,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    },
+    {
+      "attempt": 3,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    },
+    {
+      "attempt": 1,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    },
+    {
+      "attempt": 2,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    },
+    {
+      "attempt": 3,
+      "stage": "parse",
+      "message": "sr block missing SEARCH for auth.js",
+      "details": null
+    }
+  ],
+  "last_error_stage": "parse",
+  "plan_tree": {
+    "schema_version": 1,
+    "task_id": "test-create-file-direct",
+    "created_at": "2026-04-03T22:00:49.363Z",
+    "updated_at": "2026-04-03T22:02:14.704Z",
+    "replans": 3,
+    "order": [
+      "r1_s1",
+      "r2_r1_s2"
+    ],
+    "nodes": {
+      "r1_s1": {
+        "id": "r1_s1",
+        "description": "Create src/controllers directory structure",
+        "target_files": [
+          "workspace/src/controllers"
+        ],
+        "dependencies": [],
+        "status": "done",
+        "attempts": 0,
+        "generator_provider": "openai",
+        "review_provider": null,
+        "started_at": "2026-04-03T22:01:29.799Z",
+        "finished_at": "2026-04-03T22:01:38.017Z",
+        "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+        "checkpoint_commit_sha": null,
+        "raw_outputs": [
+          "tasks/raw/test-create-file-direct.r1_s1.attempt1.txt"
+        ],
+        "errors": []
+      },
+      "r2_r1_s2": {
+        "id": "r2_r1_s2",
+        "description": "Create auth.js file with content '// Auth controller'",
+        "target_files": [
+          "workspace/src/controllers/auth.js"
+        ],
+        "dependencies": [
+          "r1_s1"
+        ],
+        "status": "failed",
+        "attempts": 3,
+        "generator_provider": "openai",
+        "review_provider": null,
+        "started_at": "2026-04-03T22:02:03.858Z",
+        "finished_at": "2026-04-03T22:02:14.693Z",
+        "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+        "checkpoint_commit_sha": null,
+        "raw_outputs": [
+          "tasks/raw/test-create-file-direct.r2_r1_s2.attempt1.txt",
+          "tasks/raw/test-create-file-direct.r2_r1_s2.attempt2.txt",
+          "tasks/raw/test-create-file-direct.r2_r1_s2.attempt3.txt"
+        ],
+        "errors": [
+          {
+            "attempt": 1,
+            "stage": "parse",
+            "message": "sr block missing SEARCH for auth.js",
+            "details": null
+          },
+          {
+            "attempt": 2,
+            "stage": "parse",
+            "message": "sr block missing SEARCH for auth.js",
+            "details": null
+          },
+          {
+            "attempt": 3,
+            "stage": "parse",
+            "message": "sr block missing SEARCH for auth.js",
+            "details": null
+          }
+        ]
+      }
+    },
+    "limits": {
+      "max_subtasks": 12,
+      "max_replans": 2
+    }
+  },
+  "execution_trace": [
+    {
+      "subtask_id": "s1",
+      "status": "failed",
+      "attempts": 3,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "difficulty": "low",
+      "started_at": "2026-04-03T22:00:49.364Z",
+      "finished_at": "2026-04-03T22:01:04.577Z",
+      "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+      "checkpoint_commit_sha": null,
+      "raw_output_paths": [
+        "tasks/raw/test-create-file-direct.s1.attempt1.txt",
+        "tasks/raw/test-create-file-direct.s1.attempt2.txt",
+        "tasks/raw/test-create-file-direct.s1.attempt3.txt"
+      ],
+      "error_summary": "sr block missing SEARCH for src/controllers/auth.js"
+    },
+    {
+      "subtask_id": "r1_s1",
+      "status": "done",
+      "attempts": 1,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "difficulty": "low",
+      "started_at": "2026-04-03T22:01:29.799Z",
+      "finished_at": "2026-04-03T22:01:38.017Z",
+      "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+      "checkpoint_commit_sha": null,
+      "raw_output_paths": [
+        "tasks/raw/test-create-file-direct.r1_s1.attempt1.txt"
+      ],
+      "error_summary": null
+    },
+    {
+      "subtask_id": "r1_s2",
+      "status": "failed",
+      "attempts": 3,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "difficulty": "low",
+      "started_at": "2026-04-03T22:01:38.018Z",
+      "finished_at": "2026-04-03T22:01:45.112Z",
+      "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+      "checkpoint_commit_sha": null,
+      "raw_output_paths": [
+        "tasks/raw/test-create-file-direct.r1_s2.attempt1.txt",
+        "tasks/raw/test-create-file-direct.r1_s2.attempt2.txt",
+        "tasks/raw/test-create-file-direct.r1_s2.attempt3.txt"
+      ],
+      "error_summary": "sr block missing SEARCH for auth.js"
+    },
+    {
+      "subtask_id": "r2_r1_s2",
+      "status": "failed",
+      "attempts": 3,
+      "generator_provider": "openai",
+      "review_provider": null,
+      "difficulty": "low",
+      "started_at": "2026-04-03T22:02:03.858Z",
+      "finished_at": "2026-04-03T22:02:14.693Z",
+      "checkpoint_before_sha": "eafca409ef1376ff9799840c161101a5be24912f",
+      "checkpoint_commit_sha": null,
+      "raw_output_paths": [
+        "tasks/raw/test-create-file-direct.r2_r1_s2.attempt1.txt",
+        "tasks/raw/test-create-file-direct.r2_r1_s2.attempt2.txt",
+        "tasks/raw/test-create-file-direct.r2_r1_s2.attempt3.txt"
+      ],
+      "error_summary": "sr block missing SEARCH for auth.js"
+    }
+  ],
+  "started_at": "2026-04-03T22:00:49.354Z",
+  "finished_at": "2026-04-03T22:02:14.705Z"
+}

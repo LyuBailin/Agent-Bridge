@@ -1,0 +1,257 @@
+```sr
+FILE: package.json
+SEARCH:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+>>>
+REPLACE:
+<<<
+"dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "better-sqlite3": "^9.2.2"
+  }
+>>>
+```
+
+```op
+MKDIR: models
+```
+
+```sr
+FILE: db.js
+SEARCH:
+<<<
+console.log('Hello, World!');
+>>>
+REPLACE:
+<<<
+const Database = require('better-sqlite3');
+const path = require('path');
+
+const db = new Database(path.join(__dirname, 'database.sqlite'));
+
+// Enable foreign keys
+db.pragma('foreign_keys = ON');
+
+module.exports = db;
+>>>
+```
+
+```sr
+FILE: models/User.js
+SEARCH:
+<<<
+console.log('Hello, World!');
+>>>
+REPLACE:
+<<<
+const db = require('../db');
+
+const User = db.table('users', {
+  columns: [
+    { name: 'id', type: 'integer', primaryKey: true, autoIncrement: true },
+    { name: 'username', type: 'text', unique: true, notNull: true },
+    { name: 'email', type: 'text', unique: true, notNull: true },
+    { name: 'password', type: 'text', notNull: true },
+    { name: 'createdAt', type: 'text', notNull: true, defaultValue: () => new Date().toISOString() },
+    { name: 'updatedAt', type: 'text', notNull: true, defaultValue: () => new Date().toISOString() }
+  ]
+});
+
+User.create = function(username, email, password) {
+  const stmt = db.prepare(`
+    INSERT INTO users (username, email, password) 
+    VALUES (?, ?, ?)
+  `);
+  return stmt.run(username, email, password);
+};
+
+User.findById = function(id) {
+  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  return stmt.get(id);
+};
+
+User.findByEmail = function(email) {
+  const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+  return stmt.get(email);
+};
+
+User.findAll = function() {
+  const stmt = db.prepare('SELECT id, username, email, createdAt, updatedAt FROM users');
+  return stmt.all();
+};
+
+User.update = function(id, data) {
+  const updates = [];
+  const values = [];
+  
+  if (data.username !== undefined) {
+    updates.push('username = ?');
+    values.push(data.username);
+  }
+  if (data.email !== undefined) {
+    updates.push('email = ?');
+    values.push(data.email);
+  }
+  if (data.password !== undefined) {
+    updates.push('password = ?');
+    values.push(data.password);
+  }
+  if (data.updatedAt !== undefined) {
+    updates.push('updatedAt = ?');
+    values.push(data.updatedAt);
+  }
+  
+  if (updates.length === 0) return { changes: 0 };
+  
+  values.push(id);
+  const stmt = db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`);
+  return stmt.run(...values);
+};
+
+User.delete = function(id) {
+  const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+  return stmt.run(id);
+};
+
+module.exports = User;
+>>>
+```
+
+```sr
+FILE: models/Product.js
+SEARCH:
+<<<
+console.log('Hello, World!');
+>>>
+REPLACE:
+<<<
+const db = require('../db');
+
+const Product = db.table('products', {
+  columns: [
+    { name: 'id', type: 'integer', primaryKey: true, autoIncrement: true },
+    { name: 'name', type: 'text', notNull: true },
+    { name: 'description', type: 'text' },
+    { name: 'price', type: 'real', notNull: true },
+    { name: 'stock', type: 'integer', notNull: true, defaultValue: 0 },
+    { name: 'userId', type: 'integer', notNull: true, references: { table: 'users', column: 'id' } },
+    { name: 'createdAt', type: 'text', notNull: true, defaultValue: () => new Date().toISOString() },
+    { name: 'updatedAt', type: 'text', notNull: true, defaultValue: () => new Date().toISOString() }
+  ]
+});
+
+Product.create = function(name, description, price, stock, userId) {
+  const stmt = db.prepare(`
+    INSERT INTO products (name, description, price, stock, userId) 
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  return stmt.run(name, description || null, price, stock || 0, userId);
+};
+
+Product.findById = function(id) {
+  const stmt = db.prepare('SELECT * FROM products WHERE id = ?');
+  return stmt.get(id);
+};
+
+Product.findByUserId = function(userId) {
+  const stmt = db.prepare('SELECT * FROM products WHERE userId = ?');
+  return stmt.all(userId);
+};
+
+Product.findAll = function() {
+  const stmt = db.prepare('SELECT p.*, u.username as ownerUsername FROM products p JOIN users u ON p.userId = u.id');
+  return stmt.all();
+};
+
+Product.update = function(id, data) {
+  const updates = [];
+  const values = [];
+  
+  if (data.name !== undefined) {
+    updates.push('name = ?');
+    values.push(data.name);
+  }
+  if (data.description !== undefined) {
+    updates.push('description = ?');
+    values.push(data.description);
+  }
+  if (data.price !== undefined) {
+    updates.push('price = ?');
+    values.push(data.price);
+  }
+  if (data.stock !== undefined) {
+    updates.push('stock = ?');
+    values.push(data.stock);
+  }
+  if (data.updatedAt !== undefined) {
+    updates.push('updatedAt = ?');
+    values.push(data.updatedAt);
+  }
+  
+  if (updates.length === 0) return { changes: 0 };
+  
+  values.push(id);
+  const stmt = db.prepare(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`);
+  return stmt.run(...values);
+};
+
+Product.delete = function(id) {
+  const stmt = db.prepare('DELETE FROM products WHERE id = ?');
+  return stmt.run(id);
+};
+
+module.exports = Product;
+>>>
+```
+
+```sr
+FILE: app.js
+SEARCH:
+<<<
+console.log('Hello, World!');
+>>>
+REPLACE:
+<<<
+const db = require('./db');
+const User = require('./models/User');
+const Product = require('./models/Product');
+
+// Initialize tables
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    price REAL NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    userId INTEGER NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  )
+`);
+
+console.log('Database connected successfully!');
+console.log('User and Product models initialized.');
+>>>
+```

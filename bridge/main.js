@@ -11,7 +11,7 @@ const snippetFeedback = require("./snippet_feedback");
 function nowIso() {
   // Return ISO format in Beijing time (UTC+8)
   const now = new Date();
-  // Add 8 hours to convert to Beijing time
+  // Convert to Beijing time (UTC+8)
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   return beijingTime.toISOString();
 }
@@ -433,6 +433,7 @@ async function orchestrateLongTask(env, task) {
       let generatorProviderType = null;
       let reviewProviderType = null;
       let checkpointCommitSha = null;
+      let subtaskDifficulty = "medium"; // Default difficulty
 
       for (let attempt = 1; attempt <= MAX_RETRY; attempt += 1) {
         subtaskAttempt = attempt;
@@ -441,14 +442,26 @@ async function orchestrateLongTask(env, task) {
         // Detect operation type for schema-driven routing
         const operationType = adapter.detectOperationType(nextSubtask.description);
 
-        // Provider routing per subtask: route by difficulty, not operation type.
+        // Evaluate subtask difficulty instead of using original task difficulty
+        const subtaskDifficultyInfo = planner.evaluateComplexity(
+          nextSubtask.description,
+          {
+            likelyPaths: nextSubtask.target_files,
+            likelyPathCount: nextSubtask.target_files.length,
+            existingLikelyFilesLineSum: 0
+          },
+          env.config?.routing?.thresholds
+        );
+        subtaskDifficulty = subtaskDifficultyInfo.difficulty;
+
+        // Provider routing per subtask: route by subtask difficulty, not operation type.
         // OpenAI/Ollama handles simple fileops and content edits with schema constraints.
         // Claude handles high-complexity tasks only.
-        generatorProviderType = (phase3Enabled && difficulty === "high") ? "claude_cli" : providerType;
+        generatorProviderType = (phase3Enabled && subtaskDifficulty === "high") ? "claude_cli" : providerType;
         const currentGeneratorProvider = generatorProviderType === "claude_cli" ? claudeProvider : generatorProvider;
 
         // Verify+semantic verify for non-low difficulty (Phase 4 default)
-        const semanticVerifyEnabled = Boolean(phase3Enabled && difficulty !== "low");
+        const semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty !== "low");
         reviewProviderType = semanticVerifyEnabled ? "claude_cli" : null;
 
         const gitSummary = await collectGitSummary(env.workspaceDir, 10);
@@ -670,6 +683,7 @@ async function orchestrateLongTask(env, task) {
           attempts: attempt,
           generator_provider: generatorProviderType,
           review_provider: reviewProviderType,
+          difficulty: subtaskDifficulty,
           started_at: subStartedAt,
           finished_at: nowIso(),
           checkpoint_before_sha: checkpointBeforeSha,
@@ -695,6 +709,7 @@ async function orchestrateLongTask(env, task) {
           attempts: subtaskAttempt,
           generator_provider: generatorProviderType,
           review_provider: reviewProviderType,
+          difficulty: subtaskDifficulty,
           started_at: subStartedAt,
           finished_at: subFinishedAt,
           checkpoint_before_sha: checkpointBeforeSha,
