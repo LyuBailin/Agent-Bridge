@@ -1,0 +1,82 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"frontend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"package.json\",\"search\":\"\\\"main\\\": \\\"app.js\\\"\",\"replace\":\"\\\"main\\\": \\\"./backend/app.js\\\",\\n\\\"scripts\\\": {\\n  \\\"start\\\": \\\"node ./backend/app.js\\\"\\n}\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mv",
+        "arguments": "{\"from\":\"app.js\",\"to\":\"backend/app.js\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/package.json\",\"search\":\"\",\"replace\":\"{\\n  \\\"name\\\": \\\"backend\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"Backend of the project\\\",\\n  \\\"main\\\": \\\"app.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node app.js\\\"\\n  },\\n  \\\"dependencies\\\": {},\\n  \\\"devDependencies\\\": {}\\n}\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/.env\",\"search\":\"\",\"replace\":\"DB_HOST=localhost\\nDB_USER=postgres\\nDB_PASS=password\\nDB_NAME=myprojectdb\\nPORT=5000\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/config\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/config/db.js\",\"search\":\"\",\"replace\":\"const { Pool } = require('pg');\\n\\nconst pool = new Pool({\\n  host: process.env.DB_HOST,\\n  user: process.env.DB_USER,\\n  password: process.env.DB_PASS,\\n  database: process.env.DB_NAME\\n});\\n\\nmodule.exports = {\\n  query: (text, params) => pool.query(text, params)\\n};\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/schema\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/schema.sql\",\"search\":\"\",\"replace\":\"CREATE TABLE users (\\n  id SERIAL PRIMARY KEY,\\n  username VARCHAR(255) NOT NULL UNIQUE,\\n  email VARCHAR(255) NOT NULL UNIQUE,\\n  password VARCHAR(255) NOT NULL,\\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n);\\n\\nCREATE TABLE profiles (\\n  user_id INT REFERENCES users(id) ON DELETE CASCADE,\\n  bio TEXT,\\n  location VARCHAR(255),\\n  website VARCHAR(255)\\n);\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/tests\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/tests/db.test.js\",\"search\":\"\",\"replace\":\"const { query } = require('../config/db');\\n\\ndescribe('Database Connection', () => {\\n  it('should connect to the database', async () => {\\n    try {\\n      await query('SELECT NOW()');\\n      console.log('Database connection successful!');\\n    } catch (error) {\\n      console.error('Failed to connect to the database:', error);\\n      throw error;\\n    }\\n  });\\n});\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"frontend/index.html\",\"search\":\"\",\"replace\":\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n  <meta charset=\\\"UTF-8\\\">\\n  <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n  <title>Frontend</title>\\n</head>\\n<body>\\n  <h1>Hello from Frontend!</h1>\\n</body>\\n</html>\"}"
+      }
+    }
+  ]
+}

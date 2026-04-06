@@ -4,8 +4,8 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 
-const gitManager = require("../bridge/git_manager");
-const fsTools = require("../bridge/fs_tools");
+const gitManager = require("../src/core/git_manager");
+const fsTools = require("../src/utils/fs_tools");
 
 async function withTempDir(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "agent_bridge_test_"));

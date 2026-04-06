@@ -2,7 +2,8 @@
   "paths": {
     "workspace": "workspace",
     "tasks": "tasks",
-    "log": "bridge.log"
+    "log": "bridge.log",
+    "ollamaLog": "ollama.log"
   },
   "poll_interval_ms": 1000,
   "openai": {
@@ -11,10 +12,15 @@
     "base_url": "https://api.openai-proxy.org/v1",
     "openai_api_key": "sk-2TM8euNlKv1K0UNdwEM4Nw4YS7L5UIQuphO2ZQ9lwGoAszZe"
   },
-  "useOllama": false,
+  "useOllama": true,
+  "useFunctionCalling": true,
+  "functionCalling": {
+    "required": true,
+    "allowFallback": false
+  },
   "ollama": {
     "base_url": "http://localhost:11434",
-    "model": "deepseek-coder:6.7b"
+    "model": "qwen2.5-coder:14b"
   },
   "anthropic": {
     "enabled": true,
@@ -35,7 +41,7 @@
         "default_8k": { "max_tokens": 8000 },
         "extended_32k": { "max_tokens": 32000 }
       },
-      "ollama_profile": "default_8k"
+      "ollama_profile": "extended_32k"
     }
   },
   "context_limits": {
@@ -47,5 +53,11 @@
     "default_branch": "main",
     "user_name": "agent_bridge",
     "user_email": "agent@local"
+  },
+  "selfCorrection": {
+    "enabled": true
+  },
+  "verification": {
+    "allow_deletions": true
   }
 }

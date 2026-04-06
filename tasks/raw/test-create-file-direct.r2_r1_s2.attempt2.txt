@@ -1,9 +1,0 @@
-```sr
-FILE: auth.js
-SEARCH:
-
-REPLACE:
-<<<
-// Auth controller
->>>
-```

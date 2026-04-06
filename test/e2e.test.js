@@ -5,7 +5,7 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const { spawn } = require("node:child_process");
 
-const gitManager = require("../bridge/git_manager");
+const gitManager = require("../src/core/git_manager");
 
 async function withTempDir(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "agent_bridge_e2e_"));
@@ -20,7 +20,7 @@ function runOnce(rootDir, env) {
   return new Promise((resolve, reject) => {
     const child = spawn(
       process.execPath,
-      [path.join(__dirname, "..", "bridge", "main.js"), "--root", rootDir, "--once"],
+      [path.join(__dirname, "..", "src", "core", "main.js"), "--root", rootDir, "--once"],
       { env: { ...process.env, ...env }, stdio: "pipe" }
     );
     let stderr = "";

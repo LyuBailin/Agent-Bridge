@@ -1,0 +1,16 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/config\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/config/db.js\",\"search\":\"\",\"replace\":\"require('dotenv').config();\\n\\nconst { Pool } = require('pg');\\n\\n// Helper function to test database connection\\nasync function testConnection() {\\n  const pool = new Pool({\\n    host: process.env.DB_HOST || 'localhost',\\n    port: process.env.DB_PORT || 5432,\\n    database: process.env.DB_NAME || 'mydatabase',\\n    user: process.env.DB_USER || 'myuser',\\n    password: process.env.DB_PASSWORD || 'mypassword',\\n    connectionString: process.env.DATABASE_URL\\n  });\\n\\n  try {\\n    const res = await pool.query('SELECT NOW()');\\n    console.log(res.rows);\\n    return true;\\n  } catch (err) {\\n    console.error('Error connecting to the database:', err.message);\\n    return false;\\n  }\\n}\\n\\n// Exporting testConnection and Pool instance\\nmodule.exports = {\\n  testConnection,\\n  pool: new Pool({\\n    host: process.env.DB_HOST || 'localhost',\\n    port: process.env.DB_PORT || 5432,\\n    database: process.env.DB_NAME || 'mydatabase',\\n    user: process.env.DB_USER || 'myuser',\\n    password: process.env.DB_PASSWORD || 'mypassword',\\n    connectionString: process.env.DATABASE_URL\\n  })\\n};\"}"
+      }
+    }
+  ]
+}

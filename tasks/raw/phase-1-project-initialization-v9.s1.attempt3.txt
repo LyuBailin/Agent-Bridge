@@ -1,0 +1,64 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"package.json\",\"search\":\"\\\"scripts\\\": {\\n  \\\"start\\\": \\\"node app.js\\\"\\n}\",\"replace\":\"\\\"scripts\\\": {\\n  \\\"start\\\": \\\"node app.js\\\",\\n  \\\"build\\\": \\\"npm run build\\\",\\n  \\\"test\\\": \\\"npm test\\\"\\n}\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"package.json\",\"search\":\"{\\n  \\\"name\\\": \\\"hello-world\\\",\\n  \\\"version\\\": \\\"1.0.2\\\",\\n  \\\"description\\\": \\\"A simple hello world application\\\",\\n  \\\"main\\\": \\\"app.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node app.js\\\"\\n  },\\n  \\\"keywords\\\": [],\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\"\\n}\",\"replace\":\"{\\n  \\\"name\\\": \\\"project-name\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"A multi-module project architecture\\\",\\n  \\\"main\\\": \\\"app.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node app.js\\\",\\n    \\\"build\\\": \\\"npm run build\\\",\\n    \\\"test\\\": \\\"npm test\\\"\\n  },\\n  \\\"keywords\\\": [],\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\",\\n  \\\"dependencies\\\": {},\\n  \\\"devDependencies\\\": {}\\n}\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"frontend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/package.json\",\"search\":\"\",\"replace\":\"{\\n  \\\"name\\\": \\\"backend\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"Backend for project-name\\\",\\n  \\\"main\\\": \\\"index.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node index.js\\\",\\n    \\\"test\\\": \\\"jest\\\"\\n  },\\n  \\\"keywords\\\": [],\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\",\\n  \\\"dependencies\\\": {\\n    \\\"pg\\\": \\\"^8.7.1\\\"\\n  },\\n  \\\"devDependencies\\\": {\\n    \\\"jest\\\": \\\"^27.4.6\\\"\\n  }\\n}\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/.env\",\"search\":\"\",\"replace\":\"DB_HOST=localhost\\nDB_PORT=5432\\nDB_USER=user\\nDB_PASS=password\\nDB_NAME=mydb\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/config/db.js\",\"search\":\"\",\"replace\":\"const { Pool } = require('pg');\\n\\nconst pool = new Pool({\\n  user: process.env.DB_USER,\\n  host: process.env.DB_HOST,\\n  database: process.env.DB_NAME,\\n  password: process.env.DB_PASS,\\n  port: process.env.DB_PORT,\\n});\\n\\nmodule.exports = {\\n  query: (text, params) => pool.query(text, params),\\n};\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/schema.sql\",\"search\":\"\",\"replace\":\"CREATE TABLE users (\\n  id SERIAL PRIMARY KEY,\\n  username VARCHAR(255) UNIQUE NOT NULL,\\n  email VARCHAR(255) UNIQUE NOT NULL,\\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n);\\n\\nCREATE TABLE profiles (\\n  user_id INTEGER REFERENCES users(id),\\n  bio TEXT,\\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n);\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"frontend/index.html\",\"search\":\"\",\"replace\":\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n  <meta charset=\\\"UTF-8\\\">\\n  <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n  <title>Frontend</title>\\n</head>\\n<body>\\n  <h1>Welcome to the Frontend</h1>\\n</body>\\n</html>\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/tests/db.test.js\",\"search\":\"\",\"replace\":\"const { query } = require('../config/db');\\n\\ntest('Database connection and schema creation', async () => {\\n  const res = await query('SELECT * FROM users');\\n  expect(res.rows).toEqual([]);\\n});\"}"
+      }
+    }
+  ]
+}
