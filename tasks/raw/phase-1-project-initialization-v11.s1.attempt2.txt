@@ -1,0 +1,10 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"schema.sql\",\"search\":\"DEFAULT 'open'\",\"replace\":\"DEFAULT 'open'\"}"
+      }
+    }
+  ]
+}

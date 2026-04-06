@@ -1,0 +1,28 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/config\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/tests\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/migrations\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mv",
+        "arguments": "{\"from\":\"package.json\",\"to\":\"backend/package.json\"}"
+      }
+    }
+  ]
+}

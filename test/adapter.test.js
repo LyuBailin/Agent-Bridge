@@ -4,8 +4,8 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 
-const adapter = require("../bridge/adapter");
-const fsTools = require("../bridge/fs_tools");
+const adapter = require("../src/core/adapter");
+const fsTools = require("../src/utils/fs_tools");
 
 async function withTempDir(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "agent_bridge_test_"));
@@ -81,7 +81,7 @@ test("parseResponse: rejects .git paths", async () => {
       ">>>",
       "```"
     ].join("\n");
-    assert.throws(() => adapter.parseResponse(out, fsTools, ws), /Unsafe FILE path/);
+    assert.throws(() => adapter.parseResponse(out, fsTools, ws), /Invalid FILE path.*\.git/);
   });
 });
 
@@ -123,4 +123,101 @@ test("buildPrompt: includes failure feedback when provided", () => {
   );
   assert.ok(p.user.includes("PREVIOUS FAILURES"));
   assert.ok(p.user.includes("stage=parse"));
+});
+
+test("parseStructuredTextToToolCalls: parses sr block to tool_calls format", async () => {
+  await withTempDir(async (ws) => {
+    const text = [
+      "some text",
+      "```sr",
+      "FILE: a.txt",
+      "SEARCH:",
+      "<<<",
+      "hello",
+      ">>>",
+      "REPLACE:",
+      "<<<",
+      "world",
+      ">>>",
+      "```"
+    ].join("\n");
+
+    const toolCalls = adapter.parseStructuredTextToToolCalls(text);
+    assert.equal(toolCalls.length, 1);
+    assert.equal(toolCalls[0].function.name, "search_replace");
+    const args = JSON.parse(toolCalls[0].function.arguments);
+    assert.equal(args.file, "a.txt");
+    assert.equal(args.search.trim(), "hello");
+    assert.equal(args.replace.trim(), "world");
+  });
+});
+
+test("parseStructuredTextToToolCalls: parses op blocks to tool_calls format", async () => {
+  await withTempDir(async (ws) => {
+    const text = [
+      "```op",
+      "MKDIR: newdir",
+      "MV: old.js -> new.js",
+      "RM: unused.js",
+      "```"
+    ].join("\n");
+
+    const toolCalls = adapter.parseStructuredTextToToolCalls(text);
+    assert.equal(toolCalls.length, 3);
+
+    assert.equal(toolCalls[0].function.name, "mkdir");
+    assert.equal(JSON.parse(toolCalls[0].function.arguments).path, "newdir");
+
+    assert.equal(toolCalls[1].function.name, "mv");
+    const mvArgs = JSON.parse(toolCalls[1].function.arguments);
+    assert.equal(mvArgs.from, "old.js");
+    assert.equal(mvArgs.to, "new.js");
+
+    assert.equal(toolCalls[2].function.name, "rm");
+    assert.equal(JSON.parse(toolCalls[2].function.arguments).path, "unused.js");
+  });
+});
+
+test("parseStructuredTextToToolCalls: parses mixed sr and op blocks", async () => {
+  await withTempDir(async (ws) => {
+    const text = [
+      "```sr",
+      "FILE: b.txt",
+      "SEARCH:",
+      "<<<",
+      "old",
+      ">>>",
+      "REPLACE:",
+      "<<<",
+      "new",
+      ">>>",
+      "```",
+      "some text",
+      "```op",
+      "MKDIR: dir",
+      "```",
+      "```sr",
+      "FILE: c.txt",
+      "SEARCH:",
+      "<<<",
+      "",
+      ">>>",
+      "REPLACE:",
+      "<<<",
+      "content",
+      ">>>",
+      "```"
+    ].join("\n");
+
+    const toolCalls = adapter.parseStructuredTextToToolCalls(text);
+    assert.equal(toolCalls.length, 3);
+    assert.equal(toolCalls[0].function.name, "search_replace");
+    assert.equal(toolCalls[1].function.name, "mkdir");
+    assert.equal(toolCalls[2].function.name, "search_replace");
+  });
+});
+
+test("parseStructuredTextToToolCalls: returns empty array when no blocks", async () => {
+  const toolCalls = adapter.parseStructuredTextToToolCalls("no blocks here");
+  assert.equal(toolCalls.length, 0);
 });

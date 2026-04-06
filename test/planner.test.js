@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const planner = require("../bridge/planner");
+const planner = require("../src/core/planner");
 
 function estTokens(text) {
   return Math.ceil(String(text ?? "").length / 4);

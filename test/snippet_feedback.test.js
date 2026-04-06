@@ -4,8 +4,8 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 
-const fsTools = require("../bridge/fs_tools");
-const snippetFeedback = require("../bridge/snippet_feedback");
+const fsTools = require("../src/utils/fs_tools");
+const snippetFeedback = require("../src/utils/snippet_feedback");
 
 async function withTempDir(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "agent_bridge_snip_"));
@@ -53,8 +53,9 @@ test("snippet_feedback: collects and formats compact snippets", async () => {
       searchPreview: "nope",
       snippets
     });
-    assert.ok(formatted.includes(`SEARCH mismatch (got 0) on ${rel}`));
-    assert.ok(formatted.includes("Current file snippets:"));
+    assert.ok(formatted.includes(`FILE: ${rel}`));
+    assert.ok(formatted.includes("ERROR: SEARCH pattern not found"));
+    assert.ok(formatted.includes("HINT: The file currently contains:"));
     assert.ok(formatted.includes("1: line 1"));
 
     const tiny = await snippetFeedback.collectSnippetsForFile({
