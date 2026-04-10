@@ -91,147 +91,152 @@ async function logOllamaAction(actionLog) {
 }
 
 function createProvider(type, config = {}) {
-  const useFunctionCalling = config?.useFunctionCalling ?? false;
-
-  if (type === "ollama") {
-    const ollamaCfg = config?.ollama ?? {};
-    const functionCallingCfg = config?.functionCalling ?? {};
-    return {
-      type: "ollama",
-      supportsFunctionCalling: true,
-      async generateCode(prompt) {
-        const mock = await readMockTextFromEnv({
-          singleVar: SIMULATION_ENV.RESPONSE_FILE,
-          listVar: SIMULATION_ENV.RESPONSE_FILES,
-          listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
-        });
-        if (mock !== null) return mock;
-
-        return callOllama(
-          prompt,
-          {
-            model: ollamaCfg?.model ?? "qwen-2.5-coder:14b",
-            base_url: ollamaCfg?.base_url ?? "http://localhost:11434",
-            temperature: ollamaCfg?.temperature,
-            allowFallback: functionCallingCfg?.allowFallback ?? false
-          },
-          useFunctionCalling
-        );
-      }
-    };
-  }
-
-  if (type === "openai") {
-    const openaiCfg = config?.openai ?? {};
-    return {
-      type: "openai",
-      supportsFunctionCalling: true,
-      async generateCode(prompt) {
-        const mock = await readMockTextFromEnv({
-          singleVar: SIMULATION_ENV.RESPONSE_FILE,
-          listVar: SIMULATION_ENV.RESPONSE_FILES,
-          listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
-        });
-        if (mock !== null) return mock;
-
-        return callOpenAI(
-          prompt,
-          {
-            model: openaiCfg?.model ?? "gpt-3.5-turbo",
-            base_url: openaiCfg?.base_url ?? "https://api.openai.com/v1",
-            api_key: openaiCfg?.openai_api_key ?? process.env[openaiCfg?.api_key_env ?? "OPENAI_API_KEY"],
-            temperature: openaiCfg?.temperature
-          },
-          useFunctionCalling
-        );
-      }
-    };
-  }
-
-  if (type === "claude_cli") {
-    const anthropicCfg = config?.anthropic ?? config ?? {};
-    return {
-      type: "claude_cli",
-      jsonSchemas: {
-        sr: buildJsonSchemaForSr(),
-        review: buildJsonSchemaForReview()
-      },
-      async generateCode(prompt) {
-        const mock = await readMockTextFromEnv({
-          singleVar: SIMULATION_ENV.RESPONSE_FILE,
-          listVar: SIMULATION_ENV.RESPONSE_FILES,
-          listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
-        });
-        if (mock !== null) return mock;
-
-        // Respect operationType: use op schema for fileops-only, sr schema otherwise
-        const operationType = prompt?.operationType;
-        const isFileOpsOnly = operationType === 'fileops-only';
-
-        const schema = isFileOpsOnly ? buildJsonSchemaForOp() : buildJsonSchemaForSr();
-        const jsonInstruction = isFileOpsOnly
-          ? "Output a JSON object with a single field 'op' containing your ```op code blocks as a plain string.\nExample: {\"op\": \"```op\\nMKDIR: lib\\nMV: a.js -> b.js\\n```\"}"
-          : "Output a JSON object with a single field 'sr' containing your ```sr code blocks as a plain string.\nExample: {\"sr\": \"```sr\\nFILE: test.js\\nSEARCH:\\n...\\n```\"}";
-
-        const json = await callClaudeCliJson(anthropicCfg, {
-          system: [
-            String(prompt?.system ?? ""),
-            "",
-            jsonInstruction
-          ].join("\n"),
-          user: String(prompt?.user ?? ""),
-          jsonSchema: schema
-        });
-
-        ensureObject(json, "Claude JSON");
-
-        if (isFileOpsOnly) {
-          if (typeof json.op === "string" && json.op.trim() !== "") {
-            return json.op;
-          }
-          if (typeof json.output === "string" && json.output.trim() !== "") {
-            const hasOpBlocks = /```op/.test(json.output);
-            if (hasOpBlocks) {
-              return json.output;
-            }
-          }
-          throw new Error("Claude JSON missing non-empty op string");
-        } else {
-          if (typeof json.sr === "string" && json.sr.trim() !== "") {
-            return json.sr;
-          }
-          if (typeof json.output === "string" && json.output.trim() !== "") {
-            const hasSrBlocks = /```sr/.test(json.output);
-            if (hasSrBlocks) {
-              return json.output;
-            }
-          }
-          throw new Error("Claude JSON missing non-empty sr string");
-        }
-      },
-      async generateJson({ system, user, schema, timeout_ms }) {
-        const mock = await readMockTextFromEnv({
-          singleVar: SIMULATION_ENV.REVIEW_RESPONSE_FILE,
-          listVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES,
-          listIdxVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES_IDX
-        });
-        if (mock !== null) {
-          let json;
-          try {
-            json = JSON.parse(String(mock));
-          } catch (e) {
-            const err = new Error(`Failed to parse mock review JSON: ${e.message}`);
-            err.cause = e;
-            throw err;
-          }
-          return json;
-        }
-        return callClaudeCliJson(anthropicCfg, { system, user, jsonSchema: schema, timeout_ms });
-      }
-    };
-  }
-
+  if (type === "ollama") return createOllamaProvider(config);
+  if (type === "openai") return createOpenAIProvider(config);
+  if (type === "claude_cli") return createClaudeCliProvider(config);
   throw new Error(`Unknown provider type: ${type}`);
+}
+
+function createOllamaProvider(config = {}) {
+  const useFunctionCalling = config?.useFunctionCalling ?? false;
+  const ollamaCfg = config?.ollama ?? {};
+  const functionCallingCfg = config?.functionCalling ?? {};
+
+  return {
+    type: "ollama",
+    supportsFunctionCalling: true,
+    async generateCode(prompt) {
+      const mock = await readMockTextFromEnv({
+        singleVar: SIMULATION_ENV.RESPONSE_FILE,
+        listVar: SIMULATION_ENV.RESPONSE_FILES,
+        listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
+      });
+      if (mock !== null) return mock;
+
+      return callOllama(
+        prompt,
+        {
+          model: ollamaCfg?.model ?? "qwen-2.5-coder:14b",
+          base_url: ollamaCfg?.base_url ?? "http://localhost:11434",
+          temperature: ollamaCfg?.temperature,
+          allowFallback: functionCallingCfg?.allowFallback ?? false
+        },
+        useFunctionCalling
+      );
+    }
+  };
+}
+
+function createOpenAIProvider(config = {}) {
+  const useFunctionCalling = config?.useFunctionCalling ?? false;
+  const openaiCfg = config?.openai ?? {};
+
+  return {
+    type: "openai",
+    supportsFunctionCalling: true,
+    async generateCode(prompt) {
+      const mock = await readMockTextFromEnv({
+        singleVar: SIMULATION_ENV.RESPONSE_FILE,
+        listVar: SIMULATION_ENV.RESPONSE_FILES,
+        listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
+      });
+      if (mock !== null) return mock;
+
+      return callOpenAI(
+        prompt,
+        {
+          model: openaiCfg?.model ?? "gpt-3.5-turbo",
+          base_url: openaiCfg?.base_url ?? "https://api.openai.com/v1",
+          api_key: openaiCfg?.openai_api_key ?? process.env[openaiCfg?.api_key_env ?? "OPENAI_API_KEY"],
+          temperature: openaiCfg?.temperature
+        },
+        useFunctionCalling
+      );
+    }
+  };
+}
+
+function createClaudeCliProvider(config = {}) {
+  const anthropicCfg = config?.anthropic ?? config ?? {};
+
+  return {
+    type: "claude_cli",
+    jsonSchemas: {
+      sr: buildJsonSchemaForSr(),
+      review: buildJsonSchemaForReview()
+    },
+    async generateCode(prompt) {
+      const mock = await readMockTextFromEnv({
+        singleVar: SIMULATION_ENV.RESPONSE_FILE,
+        listVar: SIMULATION_ENV.RESPONSE_FILES,
+        listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
+      });
+      if (mock !== null) return mock;
+
+      const operationType = prompt?.operationType;
+      const isFileOpsOnly = operationType === "fileops-only";
+
+      const schema = isFileOpsOnly ? buildJsonSchemaForOp() : buildJsonSchemaForSr();
+      const jsonInstruction = isFileOpsOnly
+        ? "Output a JSON object with a single field 'op' containing your ```op code blocks as a plain string.\nExample: {\"op\": \"```op\\nMKDIR: lib\\nMV: a.js -> b.js\\n```\"}"
+        : "Output a JSON object with a single field 'sr' containing your ```sr code blocks as a plain string.\nExample: {\"sr\": \"```sr\\nFILE: test.js\\nSEARCH:\\n...\\n```\"}";
+
+      const json = await callClaudeCliJson(anthropicCfg, {
+        system: [
+          String(prompt?.system ?? ""),
+          "",
+          jsonInstruction
+        ].join("\n"),
+        user: String(prompt?.user ?? ""),
+        jsonSchema: schema
+      });
+
+      ensureObject(json, "Claude JSON");
+
+      if (isFileOpsOnly) {
+        if (typeof json.op === "string" && json.op.trim() !== "") {
+          return json.op;
+        }
+        if (typeof json.output === "string" && json.output.trim() !== "") {
+          const hasOpBlocks = /```op/.test(json.output);
+          if (hasOpBlocks) {
+            return json.output;
+          }
+        }
+        throw new Error("Claude JSON missing non-empty op string");
+      } else {
+        if (typeof json.sr === "string" && json.sr.trim() !== "") {
+          return json.sr;
+        }
+        if (typeof json.output === "string" && json.output.trim() !== "") {
+          const hasSrBlocks = /```sr/.test(json.output);
+          if (hasSrBlocks) {
+            return json.output;
+          }
+        }
+        throw new Error("Claude JSON missing non-empty sr string");
+      }
+    },
+    async generateJson({ system, user, schema, timeout_ms }) {
+      const mock = await readMockTextFromEnv({
+        singleVar: SIMULATION_ENV.REVIEW_RESPONSE_FILE,
+        listVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES,
+        listIdxVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES_IDX
+      });
+      if (mock !== null) {
+        let json;
+        try {
+          json = JSON.parse(String(mock));
+        } catch (e) {
+          const err = new Error(`Failed to parse mock review JSON: ${e.message}`);
+          err.cause = e;
+          throw err;
+        }
+        return json;
+      }
+      return callClaudeCliJson(anthropicCfg, { system, user, jsonSchema: schema, timeout_ms });
+    }
+  };
 }
 
 async function callCodex(openaiCfg, prompt, opts = {}) {
