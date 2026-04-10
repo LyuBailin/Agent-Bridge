@@ -11,6 +11,7 @@
 | 5 | 完成 | Task 1-7 全部完成 (双向import扩展 + 解析增强 + 存在性校验) |
 | 6 | 完成 | 分析完成：11 个 bug 识别（Pre-Hooks旁路、并发竞争、日志空、验证绕过、正则不完整等） |
 | 7 | 完成 | Task 1,3,4,5,6 完成 (Pre-Hooks修复 + AppliedChanges修复 + 语义验证修复 + Import正则补充)；Task-2 跳过 |
+| 8 | 完成 | Task 1-2 完成 (并发竞争条件修复：双重检查锁定策略) |
 
 ## 已完成的优化
 
@@ -51,15 +52,27 @@
 4. **Import 正则补充**: 增加 sideEffectImportRe, namespaceImportRe, exportDefaultFromRe
 5. **测试适配**: parser.test.js async 测试更新
 
+### 迭代 8
+1. **并发竞争条件修复**: orchestrateLongTask 中使用双重检查锁定策略（task.json status 作为主锁）
+
 ## 待处理问题
 
-### 迭代 7 延后项
-- **并发竞争条件**: task.json 状态原子更新（高优先级，待迭代 8）
+### 迭代 8 完成后：高优先级问题已全部修复
+
+所有高优先级问题（Pre-Hooks 旁路、并发竞争、AppliedChanges 日志、语义验证绕过、Import 正则）已修复。
+
+### 剩余低优先级问题（后续迭代）
+- Squash 失败后 staged changes 清理
+- Rollback SHA 验证
+- Timeout 竞争处理
+- Replan 计数器修正
+- 隐藏文件支持
 
 ### 迭代 6 待办（已取消）
 - ~~Pre-Hooks 修复~~ → 已在迭代 7 完成
 - ~~AppliedChanges 修复~~ → 已在迭代 7 完成
 - ~~语义验证绕过修复~~ → 已在迭代 7 完成
+- ~~并发竞争条件~~ → 已在迭代 8 完成
 
 ### 迭代 5 待办（已完成）
 - ~~双向 import 图扩展~~ → 已在迭代 5 完成
