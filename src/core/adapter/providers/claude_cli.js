@@ -168,8 +168,14 @@ async function callClaudeCliJson(anthropicCfg, { system, user, jsonSchema, timeo
           try {
             const resultJson = JSON.parse(json.result);
             logClaudeMessage(`Result field parsed as JSON | keys: ${Object.keys(resultJson).join(", ")}`, LEVEL.OK);
+            // If result looks like a schema definition (has 'type' and 'properties') rather than
+            // actual data (has 'ok' or 'feedback_for_generator'), treat as text for further processing
+            if (resultJson.type && resultJson.properties && !resultJson.hasOwnProperty("ok")) {
+              logClaudeMessage(`Result looks like schema definition, not data - treating as text`, LEVEL.WARN);
+              throw new Error("schema echo detected");
+            }
             resolve(resultJson);
-          } catch {
+          } catch (e) {
             // result is markdown code block string - extract content
             logClaudeMessage(`Result is markdown code block, extracting content`, LEVEL.INFO);
             // Extract code block type (json, sr, or op) and content
