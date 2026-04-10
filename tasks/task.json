@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "task_id": "phase-3-final-verify-v3.3",
-  "instruction": "Final verification of Phase 3 Frontend: 1) Verify all files exist: frontend/package.json, frontend/vite.config.js, frontend/index.html, frontend/src/main.js, frontend/src/App.js, frontend/src/api/index.js, frontend/src/components/Login.js, frontend/src/components/Register.js, frontend/src/components/UserProfile.js, frontend/src/components/Logout.js. 2) Verify backend/routes/auth.js uses process.env.JWT_SECRET and has actual pool.query DB calls instead of commented User model code. 3) Verify frontend Login.js uses apiClient, email field, and navigate('/profile') on success. 4) Verify Logout.js clears token and redirects. No changes needed if all correct.",
-  "status": "running",
+  "task_id": "phase-6-deployment-optimization-v6.0",
+  "instruction": "Phase 6 Deployment and Optimization: 1) Create Dockerfile in workspace/backend for containerized deployment. 2) Create docker-compose.yml in workspace/ for full-stack orchestration. 3) Create .env.example files with all required environment variables. 4) Create nginx.conf for reverse proxy configuration. 5) Create .dockerignore files. 6) Add build scripts to package.json for frontend production build.",
+  "status": "queued",
   "difficulty": "medium",
   "complexity_score": 35,
-  "started_at": "2026-04-07T21:28:16.153Z",
-  "updated_at": "2026-04-07T21:28:16.154Z",
+  "started_at": null,
+  "updated_at": "2026-04-10T21:00:00.000Z",
   "finished_at": null
 }

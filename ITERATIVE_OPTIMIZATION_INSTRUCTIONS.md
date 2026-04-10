@@ -7,6 +7,62 @@
 - **项目根目录**: `/home/lyublin/LLM/Agent-Bridge`
 - **迭代记录目录**: `cc-self-iteration/`
 
+## 正确的执行顺序（重要！）
+
+```
+阶段 0: 执行任务 (Task Execution)
+   ↓
+   如果任务失败或发现 Bug
+   ↓
+阶段 1: 项目审查 (Review)
+   ↓
+阶段 2: 制定优化计划 (Plan)
+   ↓
+阶段 3: 执行计划 (Execute)
+   ↓
+阶段 4: 测试修改 (Test)
+   ↓
+阶段 5: 记录与分析 (Document & Analyze)
+```
+
+**关键原则**: 必须先运行任务，只有在发现 bug 或任务失败时才触发代码优化流程。
+
+## 阶段 0: 执行任务 (Task Execution)
+
+**目标**: 执行 Agent Bridge 本身的任务流水线，验证功能正常
+
+**操作步骤**:
+
+1. **读取任务**: 读取 `DifficultTask.txt` 了解当前目标任务
+
+2. **更新任务队列**: 将任务写入 `tasks/task.json`
+   ```json
+   {
+     "schema_version": 1,
+     "task_id": "phase-N-xxx",
+     "instruction": "任务描述",
+     "status": "queued",
+     "difficulty": "medium",
+     "complexity_score": 50
+   }
+   ```
+
+3. **运行 Agent Bridge**: 执行 `npm start` 运行任务
+   ```
+   npm start
+   ```
+
+4. **判断结果**:
+   - **任务成功** → 完成，更新 task.json 状态
+   - **任务失败/Bug 发现** → 触发 阶段1（审查）
+   - **无进展但未失败** → 评估是否需要优化
+
+5. **更新 `cc-self-iteration/current-state.md`**:
+   - 记录当前任务执行状态
+   - 记录 workspace 进度
+
+---
+
 ## 迭代记录结构
 
 ```
@@ -24,9 +80,11 @@ cc-self-iteration/
 └── full-log.md           # 完整迭代日志
 ```
 
-## 阶段执行顺序
+---
 
-### 阶段 1: 项目审查 (Review)
+## 阶段 1: 项目审查 (Review)
+
+**前提**: 任务执行失败或发现了 bug，需要优化 Agent Bridge 本身
 
 **目标**: 分析 Agent Bridge 项目本身，找出可优化点
 
@@ -63,7 +121,9 @@ cc-self-iteration/
    - 按严重程度排序
    - 识别可并行处理的独立问题
 
-### 阶段 2: 制定优化计划 (Plan)
+---
+
+## 阶段 2: 制定优化计划 (Plan)
 
 **目标**: 基于审查结果，制定可执行的优化 DAG
 
@@ -98,9 +158,10 @@ cc-self-iteration/
    | 2 | 优化helper函数 | utils/fs_tools.js | - | 30 |
    | 3 | 更新调用处 | adapter/index.js | 1,2 | 25 |
    ```
-   ```
 
-### 阶段 3: 执行计划 (Execute)
+---
+
+## 阶段 3: 执行计划 (Execute)
 
 **目标**: 按 DAG 顺序执行每个优化任务
 
@@ -132,7 +193,9 @@ cc-self-iteration/
    git add . && git commit -m "checkpoint iteration-{N}: task-description"
    ```
 
-### 阶段 4: 测试修改 (Test)
+---
+
+## 阶段 4: 测试修改 (Test)
 
 **目标**: 确保修改正确且无副作用
 
@@ -166,7 +229,9 @@ cc-self-iteration/
    - npm test: 全部通过
    ```
 
-### 阶段 5: 记录与分析 (Document & Analyze)
+---
+
+## 阶段 5: 记录与分析 (Document & Analyze)
 
 **目标**: 记录所有变更，分析 Bug 根因
 
@@ -212,6 +277,8 @@ cc-self-iteration/
    - 汇总当前项目状态
    - 更新待处理问题列表
 
+---
+
 ## 迭代控制
 
 ### 迭代循环规则
@@ -219,7 +286,9 @@ cc-self-iteration/
 ```
 for iteration in 1..max_iterations:
     创建 cc-self-iteration/iteration-{iteration}/
-    执行 阶段1-5
+    执行 阶段0（任务执行）
+    if 任务失败或发现bug:
+        执行 阶段1-5
     if 达到停止条件:
         break
 ```
@@ -241,6 +310,8 @@ for iteration in 1..max_iterations:
 | 35-70 | Ollama + Claude review | 语法 + 语义 |
 | > 70 | Claude 直接执行 | 深度语义审查 |
 
+---
+
 ## 关键约束
 
 1. **始终使用 SEARCH/REPLACE** 进行内容修改
@@ -250,11 +321,15 @@ for iteration in 1..max_iterations:
 5. **所有记录写入 `cc-self-iteration/`**，不得写入其他位置
 6. **每次迭代后更新 `full-log.md`**
 
+---
+
 ## 错误处理
 
 - **单任务失败**: 回滚到上一个检查点，重试（最多3次）
 - **连续失败**: 标记任务为 blocked，尝试后续独立任务
 - **系统性失败**: 终止迭代，记录错误到 `cc-self-iteration/full-log.md`
+
+---
 
 ## 输出格式
 
@@ -263,6 +338,7 @@ for iteration in 1..max_iterations:
 # Agent Bridge 迭代优化完整日志
 
 ## 迭代 1 ({date})
+- 任务执行: phase-1-xxx (成功/失败)
 - 审查发现: X 个问题
 - 执行任务: Y 个
 - 测试结果: 通过

@@ -72,3 +72,73 @@
 ### 提交
 - `42adc72`: checkpoint iteration-3: fix semantic verifier infinite replan bug (pass file contents, relax blocking)
 
+## 迭代 4 (2026-04-10)
+
+### 审查发现
+- BUG-002: Phase 5 在 semantic_verify 阶段失败
+- 根因: Claude CLI 返回 `{"type":"ok":true,...}` 而非预期的 `{"ok":true,...}`
+- MiniMax-M2.7 模型通过 Claude CLI 返回了结构错误的 JSON（将 "ok" 放在了 "type" 字段中）
+
+### 执行任务
+- Task 1: ensureReviewShape 改进，增加错误诊断 ✓
+- Task 2: prompt 增强，明确 JSON 格式要求（禁止将 ok 放在 type 字段中）✓
+- Task 3: 手动完成 Phase 5 (测试和文档) ✓
+
+### 测试结果
+- npm test: 401 tests passed, 0 failed
+- 语法检查: 全部通过
+
+### 修改文件
+- `src/core/verifier.js` (ensureReviewShape 函数增强 + prompt 格式明确化)
+- `config.json` (anthropic.model 设为 MiniMax-M2.7)
+
+### Phase 5 完成内容
+- Backend: jest, supertest, swagger-ui-express, swagger-jsdoc 安装
+- Backend tests: auth.test.js, api.test.js, error.test.js
+- Swagger: swagger.json (完整 OpenAPI 3.0 规范)
+- Server.js: 集成 swagger-ui-express
+- Frontend: cypress.config.js, cypress/support/e2e.js, cypress/e2e/app.cy.js
+
+### 根因分析
+- MiniMax-M2.7 通过 Claude CLI 返回 JSON 时，错误地将布尔值放在 "type" 字段中
+- 原因：schema 中的 `"ok": { "type": "boolean" }` 被模型误读为"返回一个 type 字段"
+- 修复方案：
+  1. **预防**：prompt 中增加明确的格式要求，禁止将 ok 放在 type 字段中
+  2. **补救**：ensureReviewShape 函数增强，尝试 salvage 畸形响应
+- ensureReviewShape 补救逻辑仍保留，作为最后防线
+
+## 迭代 5 (2026-04-10)
+
+### 审查发现
+- 问题数量: 6 个 (3 高优先级, 3 中优先级)
+- 主要问题: 难度评估关键词可绕过、上下文扩展单向（只用 reverseEdges）、import graph 解析脆弱
+- 审查方式: 人工代码审查，非任务失败触发
+
+### 执行任务
+- Task 1: 双向 import 图扩展 ✓
+- Task 2: import graph 解析增强 (动态 import + export from) ✓
+- Task 3: likelyPaths 文件存在性校验 ✓
+- Task 4: 更新 expandRelatedFiles 调用 (传入 edges + direction) ✓
+- Task 5: 校准 evaluateComplexity (集成存在性校验) ✓
+- Task 6: 更新 workflow.js 上下文收集 ✓
+- Task 7: 测试验证 ✓
+
+### 测试结果
+- npm test: **401 tests passed, 0 failed** ✓
+
+### 修改文件
+- `src/utils/fs_tools.js` (expandRelatedFiles 双向扩展 + import graph 解析增强)
+- `src/core/planner.js` (extractLikelyPaths 增加 workspaceDir 存在性校验)
+- `src/core/workflow.js` (expandRelatedFiles 调用传入 edges + direction)
+
+### 根因分析
+1. **难度评估**: 基于硬编码关键词，无语义理解；likelyPathCount 不验证文件存在性；replan 时未动态校准
+2. **上下文管理**: expandRelatedFiles 只用 reverseEdges 单向扩展，遗漏子模块；import graph 解析对动态 import/export from/TS 无效；optimizeContext greedy fill 无语义排序
+
+### 优先级建议
+- ★★★★★ 双向 import 图扩展 (task-1, task-4)
+- ★★★★★ import graph 解析改进 (task-2, task-4)
+- ★★★★ likelyPaths 文件存在性校验 (task-3, task-5)
+- ★★★★ LLM 难度校准 (规划中，未排入 task)
+- ★★★ 向量嵌入 (workspace 30+ 文件，规模不足，暂缓)
+

@@ -1,0 +1,15 @@
+```sr
+FILE: frontend/package.json
+SEARCH:
+<<<
+"scripts": {
+  "test:e2e": "cypress open"
+}
+>>>
+REPLACE:
+<<<
+"scripts": {
+  "test:e2e": "cypress run --headless"
+}
+>>>
+```

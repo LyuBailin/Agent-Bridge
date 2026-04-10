@@ -165,8 +165,10 @@ async function extractImportGraph(workspaceDir, opts = {}) {
     reverseEdges[to].push(from);
   }
 
-  const importRe = /\bimport\s+[^;]*?\s+from\s+["']([^"']+)["']/g;
+  const importRe = /\bimport\s+(?:(?:type\s+)?\{[^}]+\}\s+from\s+|default\s+from\s+)?["']([^"']+)["']/g;
+  const dynamicImportRe = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
   const requireRe = /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g;
+  const exportFromRe = /export\s+\{[^}]+\}\s+from\s+["']([^"']+)["']/g;
 
   let processed = 0;
   for (const rel of candidates) {
@@ -184,7 +186,7 @@ async function extractImportGraph(workspaceDir, opts = {}) {
     const from = toPosixPath(rel);
 
     const targets = [];
-    for (const re of [importRe, requireRe]) {
+    for (const re of [importRe, dynamicImportRe, exportFromRe, requireRe]) {
       re.lastIndex = 0;
       let m;
       while ((m = re.exec(text))) {
@@ -226,11 +228,13 @@ async function extractImportGraph(workspaceDir, opts = {}) {
   return { edges, reverseEdges };
 }
 
-function expandRelatedFiles({ seedFiles, reverseEdges, depth = 1, maxFiles = 20 } = {}) {
+function expandRelatedFiles({ seedFiles, reverseEdges, edges, depth = 1, maxFiles = 20, direction = "both" } = {}) {
   const seeds = Array.isArray(seedFiles) ? seedFiles.map((s) => String(s)).filter(Boolean) : [];
   const rev = reverseEdges && typeof reverseEdges === "object" ? reverseEdges : {};
+  const fwd = edges && typeof edges === "object" ? edges : {};
   const d = Number.isFinite(depth) ? Math.max(0, Math.floor(depth)) : 1;
   const cap = Number.isFinite(maxFiles) ? Math.max(1, Math.floor(maxFiles)) : 20;
+  const dir = direction === "forward" || direction === "both" ? direction : "reverse";
 
   const out = new Set(seeds);
   let frontier = seeds.slice();
@@ -238,17 +242,45 @@ function expandRelatedFiles({ seedFiles, reverseEdges, depth = 1, maxFiles = 20 
   for (let level = 0; level < d; level += 1) {
     const next = [];
     for (const f of frontier) {
-      const parents = Array.isArray(rev[f]) ? rev[f] : [];
-      for (const p of parents) {
+      const neighbors =
+        dir === "forward"
+          ? Array.isArray(fwd[f]) ? fwd[f] : []
+          : Array.isArray(rev[f]) ? rev[f] : [];
+      for (const n of neighbors) {
         if (out.size >= cap) break;
-        if (out.has(p)) continue;
-        out.add(p);
-        next.push(p);
+        if (out.has(n)) continue;
+        out.add(n);
+        next.push(n);
       }
       if (out.size >= cap) break;
     }
     frontier = next;
     if (frontier.length === 0) break;
+  }
+
+  // For 'both' direction, run a second pass for the opposite direction
+  if (dir === "both") {
+    const opposite = "reverse";
+    const out2 = new Set(Array.from(out));
+    let frontier2 = Array.from(out);
+
+    for (let level = 0; level < d; level += 1) {
+      const next = [];
+      for (const f of frontier2) {
+        const neighbors = Array.isArray(rev[f]) ? rev[f] : [];
+        for (const n of neighbors) {
+          if (out2.size >= cap) break;
+          if (out2.has(n)) continue;
+          out2.add(n);
+          next.push(n);
+        }
+        if (out2.size >= cap) break;
+      }
+      frontier2 = next;
+      if (frontier2.length === 0) break;
+    }
+
+    return Array.from(out2);
   }
 
   return Array.from(out);

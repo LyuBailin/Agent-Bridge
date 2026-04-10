@@ -8,7 +8,7 @@ function unique(arr) {
   return Array.from(new Set(arr));
 }
 
-function extractLikelyPaths(instruction) {
+function extractLikelyPaths(instruction, workspaceDir) {
   const text = String(instruction ?? "");
 
   // Very lightweight heuristic: look for segments containing a dot-ext or a slash.
@@ -36,13 +36,21 @@ function extractLikelyPaths(instruction) {
     }
   }
 
-  return unique(
+  const cleaned = unique(
     paths
       .map((p) => p.trim())
       .filter(Boolean)
       .map((p) => p.split(/[),;:]+$/)[0])
       .map((p) => p.split(/^[({\[]+/)[1] ?? p)
   );
+
+  // Filter to only return paths that exist in workspaceDir (when provided)
+  if (workspaceDir && typeof workspaceDir === "string") {
+    const { isWithinWorkspace } = require("../utils/fs_tools");
+    return cleaned.filter((p) => isWithinWorkspace(workspaceDir, p));
+  }
+
+  return cleaned;
 }
 
 function isPlainObject(x) {

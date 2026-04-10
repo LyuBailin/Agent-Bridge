@@ -273,8 +273,10 @@ async function buildSubtaskContext(env, nextSubtask, difficulty, difficultyInfo,
     likelyPaths = fsTools.expandRelatedFiles({
       seedFiles: likelyPaths,
       reverseEdges: importGraph.reverseEdges,
+      edges: importGraph.edges,
       depth: 1,
-      maxFiles: maxExpandedFiles
+      maxFiles: maxExpandedFiles,
+      direction: "both"
     });
   }
 
@@ -377,7 +379,7 @@ async function orchestrateLongTask(env, task) {
 
   try {
     if (!difficultyInfo) {
-      const likelyPaths = planner.extractLikelyPaths(task?.instruction);
+      const likelyPaths = planner.extractLikelyPaths(task?.instruction, env.workspaceDir);
       let lineSum = 0;
       for (const rel of likelyPaths) {
         try {
@@ -513,7 +515,7 @@ async function orchestrateLongTask(env, task) {
         generatorProviderType = phase3Enabled && subtaskDifficulty === "high" ? "claude_cli" : providerType;
         const currentGeneratorProvider = generatorProviderType === "claude_cli" ? claudeProvider : generatorProvider;
 
-        semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty === "high");
+        semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty !== "low");
 
         const optimizedContext = await buildSubtaskContext(
           env,

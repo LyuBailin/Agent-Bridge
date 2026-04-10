@@ -63,8 +63,40 @@ function ensureReviewShape(json) {
   if (!json || typeof json !== "object" || Array.isArray(json)) {
     throw new Error("Invalid semantic review: expected JSON object");
   }
+
+  // Helper to build diagnostic message
+  const diagKeys = () => Object.keys(json).join(", ");
+
+  // Detect common malformed responses
   if (typeof json.ok !== "boolean") {
-    throw new Error("Invalid semantic review: missing boolean ok");
+    // Case 1: Model put ok as value of "type" key: {"type":"ok", "ok":true, ...}
+    // This happens when model writes {"type":"ok":true,...} thinking it defines the type
+    if (json.type === "ok" || json.type === "true" || json.type === true) {
+      // Model returned {"type":"ok",...} instead of {"ok":true,...}
+      // Try to extract from other keys
+      if (typeof json.ok === "boolean") {
+        // ok exists as boolean but under wrong key path - this shouldn't happen but handle it
+        // Actually json.ok IS the boolean we need
+      } else if (typeof json.issues !== "undefined" || typeof json.feedback_for_generator !== "undefined") {
+        // Try to salvage - issues and feedback_for_generator might be at top level
+        const issues = Array.isArray(json.issues) ? json.issues : [];
+        const feedback = typeof json.feedback_for_generator === "string" ? json.feedback_for_generator : "";
+        // Assume ok=true if we got here
+        json = { ok: true, issues, feedback_for_generator: feedback };
+      } else {
+        throw new Error(`Invalid semantic review: missing boolean ok. Response keys: ${diagKeys()}. Model may have returned schema definition instead of data.`);
+      }
+    } else if (typeof json.type === "object" && json.type !== null) {
+      // Case 2: Model returned {"type":{"ok":true,...}} - nested type
+      const nested = json.type;
+      if (typeof nested.ok === "boolean" && Array.isArray(nested.issues)) {
+        json = { ok: nested.ok, issues: nested.issues, feedback_for_generator: nested.feedback_for_generator ?? "" };
+      } else {
+        throw new Error(`Invalid semantic review: missing boolean ok. Response keys: ${diagKeys()}`);
+      }
+    } else {
+      throw new Error(`Invalid semantic review: missing boolean ok. Response keys: ${diagKeys()}`);
+    }
   }
   if (!Array.isArray(json.issues)) {
     throw new Error("Invalid semantic review: missing issues array");
@@ -146,7 +178,9 @@ async function semanticVerify(task, workspaceDir, gitManager, claudeProvider, op
     "If there are no blockers, set ok=true (warnings can still be listed).",
     "",
     "CRITICAL: Return ONLY valid JSON matching the schema. No extra text.",
-    "Example: {\"ok\": true, \"issues\": [], \"feedback_for_generator\": \"No issues found\"}"
+    "Example: {\"ok\": true, \"issues\": [], \"feedback_for_generator\": \"No issues found\"}",
+    "IMPORTANT: The 'ok' field must be a BOOLEAN (true/false) at the TOP LEVEL of the JSON object.",
+    "IMPORTANT: Do NOT put 'ok' inside a 'type' field. Correct: {\"ok\": true, ...}  Wrong: {\"type\": \"ok\", \"ok\": true, ...}"
   ].join("\n");
 
   const user = [

@@ -7,6 +7,8 @@
 | 1 | 完成 | Task 1-5 全部完成 |
 | 2 | 完成 | Task 1-2 完成, Task 3 延后 |
 | 3 | 完成 | Task 1-3 全部完成 (Bug修复) |
+| 4 | 完成 | BUG-002修复 + Phase 5 手动完成 |
+| 5 | 完成 | Task 1-7 全部完成 (双向import扩展 + 解析增强 + 存在性校验) |
 
 ## 已完成的优化
 
@@ -24,8 +26,23 @@
 ### 迭代 3
 1. **semanticVerify 修复**: 传递实际文件内容 + 放松 blocking 条件，修复无限 replan 循环 bug
 
+### 迭代 4
+1. **BUG-002 修复**: ensureReviewShape 函数增强 + prompt 格式明确化，处理 Claude CLI 返回的畸形 JSON（`{"type":"ok":...}` 而非 `{"ok":...}`）
+2. **config.json**: anthropic.model 设为 MiniMax-M2.7
+
+### 迭代 5
+1. **问题识别**: 难度评估存在 5 个隐患（关键词可绕过、路径不验证存在性、import graph 解析脆弱、replan 时未动态校准）
+2. **问题识别**: 上下文管理机械（单向 import 扩展、深度限制、greedy token 填充无语义排序）
+3. **改进方案**: 双向 import 图扩展 + import graph 解析改进（推荐先行，低成本高收益）
+
 ## 待处理问题
 
+### 迭代 5 待办（高优先级）
+- **双向 import 图扩展**: `expandRelatedFiles` 同时使用 `edges` 和 `reverseEdges`，解决子模块遗漏问题
+- **import graph 解析改进**: 支持动态 import、export from、TS 类型导入语法
+- **likelyPaths 文件存在性校验**: 难度评分时验证路径真实存在后再计入分数
+
+### 迭代 4 延后项
 - `orchestrateLongTask` 仍然较大（~600行），但已提取部分辅助函数；完整提取（task-3）因风险较高已延后
 - `adapter/index.js` 中 Claude CLI generateCode 仍有重复模式，但因 post-processing 复杂暂未处理
 
@@ -54,9 +71,17 @@
 - frontend/src/api/index.js
 - frontend/vite.config.js, package.json
 
-### Phase 4 (高级特性): 进行中
-- 任务: phase-4-data-visualization-v4.0
-- 目标: Chart.js 数据可视化 + Refresh Token + CORS + 输入验证
+### Phase 4 (高级特性): ✓ 完成
+- ActivityChart 组件 + Chart.js 安装
+- Refresh Token 端点 (/api/auth/refresh)
+- CORS 配置
+- 输入验证 (express-validator)
 
-### Phase 5 (测试文档): 未开始
-### Phase 6 (部署): 未开始
+### Phase 5 (测试文档): ✓ 完成
+- jest + supertest 安装
+- Backend 测试: auth.test.js, api.test.js, error.test.js
+- swagger-ui-express + swagger-jsdoc
+- swagger.json OpenAPI 规范
+- Cypress e2e 测试框架
+
+### Phase 6 (部署): 待开始

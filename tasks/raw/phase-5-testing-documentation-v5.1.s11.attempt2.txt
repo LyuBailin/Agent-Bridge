@@ -1,0 +1,20 @@
+```sr
+FILE: frontend/package.json
+SEARCH:
+<<<
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
+}
+>>>
+REPLACE:
+<<<
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview",
+  "test:e2e": "npx cypress run"
+}
+>>>
+```

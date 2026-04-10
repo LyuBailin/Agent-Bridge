@@ -1,0 +1,11 @@
+```op
+MKDIR: backend
+```
+
+```op
+MV: package.json -> backend/package.json
+```
+
+```op
+CD: backend && npm install --save-dev jest supertest
+```
