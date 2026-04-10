@@ -221,9 +221,9 @@ function parseStructuredTextToToolCalls(text) {
  * @param {boolean} options.skipHooks - Skip hook execution (for testing)
  * @returns {Object} - { changes: Array, riskAssessment: Object }
  */
-function parseToolCalls(toolCalls, fsTools, workspaceDir, options = {}) {
+async function parseToolCalls(toolCalls, fsTools, workspaceDir, options = {}) {
   const changes = [];
-  const metadata = options.metadata || { workspaceDir, fsTools };
+  const metadata = { workspaceDir, fsTools };
 
   // Run risk classification in parallel with validation
   const riskAssessment = classifyBatchRisk(toolCalls);
@@ -328,6 +328,24 @@ function parseToolCalls(toolCalls, fsTools, workspaceDir, options = {}) {
       changes.push({ type: "rm", path: rmPath });
     } else {
       throw new Error(`Unknown tool: ${name}`);
+    }
+  }
+
+  // Execute pre-hooks to apply transformations (e.g., validateSearchNotEmpty sets empty search to placeholder)
+  for (const change of changes) {
+    const toolName = change.type === "edit" ? "search_replace" : change.type;
+    const args = change.type === "edit"
+      ? { file: change.file, search: change.search, replace: change.replace }
+      : change;
+    const hookResult = await executePreHooks(toolName, args, metadata);
+    if (!hookResult.allowed) {
+      throw new Error(`Hook denied ${toolName}: ${hookResult.denyReason}`);
+    }
+    if (hookResult.modifiedArgs) {
+      // Apply hook modifications back to change
+      if (hookResult.modifiedArgs.search !== undefined) {
+        change.search = hookResult.modifiedArgs.search;
+      }
     }
   }
 

@@ -705,7 +705,7 @@ async function orchestrateLongTask(env, task) {
           taskId: task.task_id,
           subtaskId,
           toolCalls: changes.map((c) => ({ type: c.type, ...c })),
-          appliedChanges: applyResult?.changes?.map((c) => ({ type: c.type, ...c })) || [],
+          appliedChanges: (applyResult?.appliedFiles || []).map((f) => ({ type: 'applied', path: f })),
           result: "success",
           error: null
         });
@@ -776,7 +776,7 @@ async function orchestrateLongTask(env, task) {
           taskId: task.task_id,
           subtaskId,
           toolCalls: changes ? changes.map((c) => ({ type: c.type, ...c })) : [],
-          appliedChanges: applyResult?.changes?.map((c) => ({ type: c.type, ...c })) || [],
+          appliedChanges: (applyResult?.appliedFiles || []).map((f) => ({ type: 'applied', path: f })),
           result: "failure",
           error: lastError
         });

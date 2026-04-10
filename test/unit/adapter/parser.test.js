@@ -386,13 +386,13 @@ test("extractResponseText: returns empty string when output is not array", () =>
 
 // --- parseToolCalls risk blocking ---
 
-test("parseToolCalls: throws on blocking risk in batch", () => {
+test("parseToolCalls: throws on blocking risk in batch", async () => {
   // Use valid search_replace args so validation passes, then risk classifier throws
   const toolCalls = [
     { function: { name: "search_replace", arguments: JSON.stringify({ file: "test.js", search: "rm -rf /", replace: "safe" }) } }
   ];
-  assert.throws(
-    () => adapter.parseToolCalls(toolCalls, fsTools, "/fake/ws", { skipHooks: true }),
+  await assert.rejects(
+    () => adapter.parseToolCalls(toolCalls, fsTools, "/fake/ws"),
     /Blocking risk detected/
   );
 });

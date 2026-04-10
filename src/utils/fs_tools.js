@@ -168,7 +168,11 @@ async function extractImportGraph(workspaceDir, opts = {}) {
   const importRe = /\bimport\s+(?:(?:type\s+)?\{[^}]+\}\s+from\s+|default\s+from\s+)?["']([^"']+)["']/g;
   const dynamicImportRe = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
   const requireRe = /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g;
-  const exportFromRe = /export\s+\{[^}]+\}\s+from\s+["']([^"']+)["']/g;
+  const exportFromRe = /\bexport\s+\{[^}]+\}\s+from\s+["']([^"']+)["']/g;
+  // Additional patterns for complete import/export coverage
+  const sideEffectImportRe = /\bimport\s+["']([^"']+)["']/g;  // import "file" (side-effect only)
+  const namespaceImportRe = /\bimport\s+\*\s+as\s+\w+\s+from\s+["']([^"']+)["']/g;  // import * as name from "file"
+  const exportDefaultFromRe = /\bexport\s+default\s+from\s+["']([^"']+)["']/g;  // export default from "file"
 
   let processed = 0;
   for (const rel of candidates) {
@@ -186,7 +190,7 @@ async function extractImportGraph(workspaceDir, opts = {}) {
     const from = toPosixPath(rel);
 
     const targets = [];
-    for (const re of [importRe, dynamicImportRe, exportFromRe, requireRe]) {
+    for (const re of [importRe, dynamicImportRe, exportFromRe, requireRe, sideEffectImportRe, namespaceImportRe, exportDefaultFromRe]) {
       re.lastIndex = 0;
       let m;
       while ((m = re.exec(text))) {

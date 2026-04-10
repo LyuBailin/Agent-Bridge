@@ -81,8 +81,8 @@ function ensureReviewShape(json) {
         // Try to salvage - issues and feedback_for_generator might be at top level
         const issues = Array.isArray(json.issues) ? json.issues : [];
         const feedback = typeof json.feedback_for_generator === "string" ? json.feedback_for_generator : "";
-        // Assume ok=true if we got here
-        json = { ok: true, issues, feedback_for_generator: feedback };
+        // If issues is non-empty, set ok=false (there are problems to report)
+        json = { ok: issues.length === 0, issues, feedback_for_generator: feedback };
       } else {
         throw new Error(`Invalid semantic review: missing boolean ok. Response keys: ${diagKeys()}. Model may have returned schema definition instead of data.`);
       }
