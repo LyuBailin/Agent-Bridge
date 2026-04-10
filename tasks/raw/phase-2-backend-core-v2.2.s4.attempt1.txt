@@ -1,0 +1,22 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/routes\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/index.js\",\"search\":\"// No additional imports needed for this task\",\"replace\":\"const express = require('express');\\nconst app = express();\\nconst bodyParser = require('body-parser');\\nconst authRoutes = require('./routes/auth');\\n\\napp.use(bodyParser.json());\\napp.use('/api/auth', authRoutes);\\n\\nmodule.exports = app;\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/routes/auth.js\",\"search\":\"// No content to replace, create new file content\",\"replace\":\"const express = require('express');\\nconst bcrypt = require('bcryptjs');\\nconst jwt = require('jsonwebtoken');\\nconst { check } = require('express-validator');\\nconst pool = require('../config/db');\\n\\nconst router = express.Router();\\n\\n// POST /api/auth/register\\nrouter.post('/register', [\\n    check('email').isEmail().normalizeEmail(),\\n    check('password').isLength({ min: 6 })\\n], async (req, res) => {\\n    const { email, password } = req.body;\\n\\n    try {\\n        // Hash the password\\n        const salt = await bcrypt.genSalt(10);\\n        const hashedPassword = await bcrypt.hash(password, salt);\\n\\n        // Insert user into the database\\n        const result = await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *', [email, hashedPassword]);\\n\\n        // Create JWT\\n        const token = jwt.sign({ id: result.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });\\n\\n        res.json({ token });\\n    } catch (err) {\\n        console.error(err.message);\\n        return res.status(500).send('Server error');\\n    }\\n});\\n\\n// POST /api/auth/login\\nrouter.post('/login', [\\n    check('email').isEmail().normalizeEmail(),\\n    check('password').exists()\\n], async (req, res) => {\\n    const { email, password } = req.body;\\n\\n    try {\\n        // Find user by email\\n        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);\\n\\n        if (result.rows.length === 0) {\\n            return res.status(401).json({ msg: 'Invalid credentials' });\\n        }\\n\\n        const user = result.rows[0];\\n\\n        // Compare passwords\\n        const isMatch = await bcrypt.compare(password, user.password_hash);\\n\\n        if (!isMatch) {\\n            return res.status(401).json({ msg: 'Invalid credentials' });\\n        }\\n\\n        // Create JWT\\n        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });\\n\\n        res.json({ token });\\n    } catch (err) {\\n        console.error(err.message);\\n        return res.status(500).send('Server error');\\n    }\\n});\\n\\nmodule.exports = router;\"}"
+      }
+    }
+  ]
+}

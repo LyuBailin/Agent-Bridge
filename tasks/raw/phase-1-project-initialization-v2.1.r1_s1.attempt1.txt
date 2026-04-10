@@ -1,0 +1,10 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/tests/db.test.js\",\"search\":\"\",\"replace\":\"require('dotenv').config();\\nconst { Pool } = require('pg');\\nconst pool = require('../config/db');\\n\\ndescribe('Database Connection and Schema Validation', () => {\\n  afterAll(async () => {\\n    await pool.end();\\n  });\\n\\n  test('should connect to the database', async () => {\\n    const res = await pool.query('SELECT NOW()');\\n    expect(res.rows.length).toBe(1);\\n  });\\n\\n  test('should validate users table schema', async () => {\\n    const res = await pool.query(`\\n      SELECT column_name\\n      FROM information_schema.columns\\n      WHERE table_name = 'users'\\n    `);\\n    const columns = res.rows.map(row => row.column_name);\\n    expect(columns).toContain('id');\\n    expect(columns).toContain('email');\\n    expect(columns).toContain('password_hash');\\n    expect(columns).toContain('created_at');\\n  });\\n\\n  test('should validate profiles table schema', async () => {\\n    const res = await pool.query(`\\n      SELECT column_name\\n      FROM information_schema.columns\\n      WHERE table_name = 'profiles'\\n    `);\\n    const columns = res.rows.map(row => row.column_name);\\n    expect(columns).toContain('user_id');\\n  });\\n\\n  test('should validate foreign key relationship in profiles table', async () => {\\n    const res = await pool.query(`\\n      SELECT tc.constraint_name, kcu.table_name, ccu.table_name AS foreign_table_name\\n      FROM information_schema.table_constraints AS tc \\n      JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name\\n      JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name\\n      WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name='profiles'\\n    `);\\n    const foreignKeys = res.rows.map(row => row.foreign_table_name);\\n    expect(foreignKeys).toContain('users');\\n  });\\n});\"}"
+      }
+    }
+  ]
+}

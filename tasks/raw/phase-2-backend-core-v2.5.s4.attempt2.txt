@@ -1,0 +1,94 @@
+```sr
+FILE: backend/index.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const bcryptjs = require('bcryptjs');
+const { Pool } = require('pg');
+const express = require('express');
+const router = express.Router();
+
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+});
+
+// POST /register
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validate email and password
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  // Hash the password
+  const saltRounds = 10;
+  const hashedPassword = await bcryptjs.hash(password, saltRounds);
+
+  // Insert user into database
+  try {
+    const result = await pool.query(
+      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *',
+      [email, hashedPassword]
+    );
+
+    const user = result.rows[0];
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.status(201).json({ token });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+});
+
+// POST /login
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validate email and password
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = result.rows[0];
+
+    // Compare password hash
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to log in' });
+  }
+});
+
+module.exports = router;
+>>>
+```

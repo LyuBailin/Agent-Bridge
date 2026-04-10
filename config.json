@@ -13,10 +13,10 @@
     "openai_api_key": "sk-2TM8euNlKv1K0UNdwEM4Nw4YS7L5UIQuphO2ZQ9lwGoAszZe"
   },
   "useOllama": true,
-  "useFunctionCalling": true,
+  "useFunctionCalling": false,
   "functionCalling": {
-    "required": true,
-    "allowFallback": false
+    "required": false,
+    "allowFallback": true
   },
   "ollama": {
     "base_url": "http://localhost:11434",
@@ -27,7 +27,7 @@
     "provider": "claude_cli",
     "cli_path": "claude",
     "model": "",
-    "timeout_ms": 120000,
+    "timeout_ms": 300000,
     "json_strict": true
   },
   "routing": {

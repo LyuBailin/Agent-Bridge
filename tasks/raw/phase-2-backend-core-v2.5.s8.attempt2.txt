@@ -1,0 +1,19 @@
+```sr
+FILE: backend/index.js
+SEARCH:
+<<<
+const router = express.Router();
+>>>
+REPLACE:
+<<<
+const router = express.Router();
+
+const app = express();
+require('./server')(app);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+>>>
+```

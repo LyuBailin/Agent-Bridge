@@ -6,7 +6,7 @@ const { buildPrompt, buildCorrectionPrompt, buildOperationConstraint } = require
 const { TOOLS_SCHEMA } = require("./schema");
 const { callOllama } = require("./providers/ollama");
 const { callOpenAI } = require("./providers/openai");
-const { callClaudeCliJson, buildJsonSchemaForSr, buildJsonSchemaForReview, ensureObject } = require("./providers/claude_cli");
+const { callClaudeCliJson, buildJsonSchemaForSr, buildJsonSchemaForOp, buildJsonSchemaForReview, ensureObject } = require("./providers/claude_cli");
 const validator = require("./validator");
 const parser = require("./parser");
 
@@ -48,12 +48,43 @@ function supportsFunctionCalling(provider) {
 async function logOllamaAction(actionLog) {
   const now = new Date();
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  const timestamp = beijingTime.toISOString();
-  const logEntry = { timestamp, ...actionLog };
-  const logMessage = `[${timestamp}] ${JSON.stringify(logEntry)}\n`;
+  const timestamp = beijingTime.toISOString().replace("T", " ").slice(0, 23);
+  const { taskId, subtaskId, provider, duration_ms, toolCalls, applied, result, error, ...rest } = actionLog;
+
+  let msg = `[${timestamp}]`;
+  if (taskId) msg += ` [${taskId}]`;
+  if (subtaskId) msg += ` [${subtaskId}]`;
+  msg += `\n`;
+
+  if (provider) msg += `  Provider: ${provider}\n`;
+  if (duration_ms != null) msg += `  Duration: ${duration_ms}ms\n`;
+  if (toolCalls && toolCalls.length > 0) {
+    msg += `  ToolCalls:\n`;
+    for (const tc of toolCalls) {
+      if (tc.op) {
+        msg += `    - ${tc.op}`;
+        if (tc.file) msg += ` (${tc.file})`;
+        if (tc.path) msg += ` -> ${tc.path}`;
+        if (tc.from && tc.to) msg += ` ${tc.from} -> ${tc.to}`;
+        msg += `\n`;
+      } else {
+        msg += `    - ${JSON.stringify(tc)}\n`;
+      }
+    }
+  }
+  if (applied && applied.length > 0) {
+    msg += `  Applied: ${applied.join(", ")}\n`;
+  }
+  if (result) msg += `  Result: ${result}\n`;
+  if (error) msg += `  Error: ${error}\n`;
+  if (Object.keys(rest).length > 0) {
+    msg += `  Extra: ${JSON.stringify(rest)}\n`;
+  }
+  msg += `\n`;
+
   const ollamaLogPath = path.join(__dirname, "..", "ollama.log");
   try {
-    await fs.appendFile(ollamaLogPath, logMessage);
+    await fs.appendFile(ollamaLogPath, msg);
   } catch (err) {
     console.error("Failed to write to ollama.log:", err);
   }
@@ -64,6 +95,7 @@ function createProvider(type, config = {}) {
 
   if (type === "ollama") {
     const ollamaCfg = config?.ollama ?? {};
+    const functionCallingCfg = config?.functionCalling ?? {};
     return {
       type: "ollama",
       supportsFunctionCalling: true,
@@ -80,7 +112,8 @@ function createProvider(type, config = {}) {
           {
             model: ollamaCfg?.model ?? "qwen-2.5-coder:14b",
             base_url: ollamaCfg?.base_url ?? "http://localhost:11434",
-            temperature: ollamaCfg?.temperature
+            temperature: ollamaCfg?.temperature,
+            allowFallback: functionCallingCfg?.allowFallback ?? false
           },
           useFunctionCalling
         );
@@ -131,30 +164,50 @@ function createProvider(type, config = {}) {
         });
         if (mock !== null) return mock;
 
-        const schema = buildJsonSchemaForSr();
+        // Respect operationType: use op schema for fileops-only, sr schema otherwise
+        const operationType = prompt?.operationType;
+        const isFileOpsOnly = operationType === 'fileops-only';
+
+        const schema = isFileOpsOnly ? buildJsonSchemaForOp() : buildJsonSchemaForSr();
+        const jsonInstruction = isFileOpsOnly
+          ? "Output a JSON object with a single field 'op' containing your ```op code blocks as a plain string.\nExample: {\"op\": \"```op\\nMKDIR: lib\\nMV: a.js -> b.js\\n```\"}"
+          : "Output a JSON object with a single field 'sr' containing your ```sr code blocks as a plain string.\nExample: {\"sr\": \"```sr\\nFILE: test.js\\nSEARCH:\\n...\\n```\"}";
+
         const json = await callClaudeCliJson(anthropicCfg, {
           system: [
             String(prompt?.system ?? ""),
             "",
-            "Return a JSON object that matches the provided JSON Schema.",
-            "Put ALL your ```sr blocks into the single string field: sr.",
-            "Do not include any extra fields."
+            jsonInstruction
           ].join("\n"),
           user: String(prompt?.user ?? ""),
           jsonSchema: schema
         });
 
         ensureObject(json, "Claude JSON");
-        if (typeof json.sr === "string" && json.sr.trim() !== "") {
-          return json.sr;
-        }
-        if (typeof json.output === "string" && json.output.trim() !== "") {
-          const hasSrBlocks = /```sr/.test(json.output);
-          if (hasSrBlocks) {
-            return json.output;
+
+        if (isFileOpsOnly) {
+          if (typeof json.op === "string" && json.op.trim() !== "") {
+            return json.op;
           }
+          if (typeof json.output === "string" && json.output.trim() !== "") {
+            const hasOpBlocks = /```op/.test(json.output);
+            if (hasOpBlocks) {
+              return json.output;
+            }
+          }
+          throw new Error("Claude JSON missing non-empty op string");
+        } else {
+          if (typeof json.sr === "string" && json.sr.trim() !== "") {
+            return json.sr;
+          }
+          if (typeof json.output === "string" && json.output.trim() !== "") {
+            const hasSrBlocks = /```sr/.test(json.output);
+            if (hasSrBlocks) {
+              return json.output;
+            }
+          }
+          throw new Error("Claude JSON missing non-empty sr string");
         }
-        throw new Error("Claude JSON missing non-empty sr string");
       },
       async generateJson({ system, user, schema, timeout_ms }) {
         const mock = await readMockTextFromEnv({

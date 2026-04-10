@@ -1,0 +1,84 @@
+```op
+MKDIR: backend/routes
+```
+
+```sr
+FILE: backend/routes/auth.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
+
+const router = express.Router();
+
+// User registration route
+router.post('/register', [
+  body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters long'),
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    // Assume User model is defined and connected to a database
+    const { username, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user logic here (e.g., using a User model)
+    // const newUser = new User({ username, email, password: hashedPassword });
+    // await newUser.save();
+
+    const token = jwt.sign({ userId: 'someUserId' }, 'your_jwt_secret', { expiresIn: '1h' });
+
+    res.json({ token });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// User login route
+router.post('/login', [
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    // Assume User model is defined and connected to a database
+    const { email, password } = req.body;
+    // Find user by email logic here (e.g., using a User model)
+    // const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ userId: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+
+    res.json({ token });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+module.exports = router;
+>>>
+```

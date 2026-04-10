@@ -4,16 +4,69 @@ const { buildOperationGuidelines } = require('./operation_guidelines');
 const { buildOutputDiscipline } = require('./output_discipline');
 const { buildFeedbackModule } = require('./feedback');
 
+// Cache strategy for prompt optimization
+const {
+  buildOptimizedPrompt,
+  getSectionsForRole,
+  isCacheStable,
+} = require('./cache_strategy');
+
+// Role factory for role-specific prompts
+const {
+  buildRolePrompt,
+  getAvailableRoles,
+  getRoleTools,
+} = require('./role_factory');
+
+// Dynamic boundary marker for cache optimization
+const CACHE_BOUNDARY = "<!-- SYSTEM_PROMPT_DYNAMIC_BOUNDARY -->";
+
 // Modular system-prompt components
 function buildSystemPrompt() {
-  const systemComponents = [
-    buildIdentityDefinition(),
-    buildSystemRules(),
-    buildOperationGuidelines(),
-    buildOutputDiscipline()
-  ];
+  const { full } = buildOptimizedPrompt({
+    roleSections: ['engineering_donts', 'action_sequence'],
+    includeBoundary: true,
+  });
+  return full;
+}
 
-  return systemComponents.join("\n");
+// Role-specific system prompt builder
+function buildRoleSystemPrompt(roleName, context = {}) {
+  return buildRolePrompt(roleName, context);
+}
+
+// Default format guidance when no operationType specified
+function buildDefaultFormatGuidance() {
+  return `
+========================================
+⚠️  OUTPUT FORMAT: sr AND op BLOCKS
+========================================
+Output code changes using ONLY these block types:
+
+1. SEARCH/REPLACE (sr blocks) - For creating or editing files:
+\`\`\`sr
+FILE: path/to/file.js
+SEARCH:
+<<<
+exact text to find
+>>>
+REPLACE:
+<<<
+new text to insert
+>>>
+\`\`\`
+(Use empty SEARCH to create a new file)
+
+2. FILE OPERATIONS (op blocks) - For directories and file moves/deletes:
+\`\`\`op
+MKDIR: path/to/dir
+MV: old/path.js -> new/path.js
+RM: path/to/file.js
+\`\`\`
+
+DO NOT output bash commands, shell commands, or anything else.
+========================================
+`;
 }
 
 // Modular user-prompt builder
@@ -30,7 +83,7 @@ function buildUserPrompt(task, feedbackHistory = [], operationType = null, conte
     "========================================",
     "",
     `TASK_ID: ${task.task_id}`,
-    operationType ? buildOperationConstraint(operationType) : '',
+    operationType ? buildOperationConstraint(operationType) : buildDefaultFormatGuidance(),
     "INSTRUCTION:",
     task.instruction,
     buildFeedbackModule(feedbackHistory),
@@ -97,7 +150,7 @@ Examples of INCORRECT output (will be REJECTED):
 - File system operations - NOT ALLOWED for this task
 `;
   }
-  
+
   return ''; // For 'mixed', no additional constraint needed
 }
 
@@ -156,11 +209,22 @@ module.exports = {
   buildPrompt,
   buildCorrectionPrompt,
   buildSystemPrompt,
+  buildRoleSystemPrompt,
   buildUserPrompt,
   buildOperationConstraint,
   buildIdentityDefinition,
   buildSystemRules,
   buildOperationGuidelines,
   buildOutputDiscipline,
-  buildFeedbackModule
+  buildFeedbackModule,
+  // Export role factory utilities
+  buildRolePrompt,
+  getAvailableRoles,
+  getRoleTools,
+  // Export cache strategy utilities
+  buildOptimizedPrompt,
+  getSectionsForRole,
+  isCacheStable,
+  // Export boundary marker
+  CACHE_BOUNDARY,
 };

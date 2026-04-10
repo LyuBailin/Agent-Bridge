@@ -8,8 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm start` - Start the Agent Bridge main controller (polls for tasks in `tasks/task.json`)
 
 ### Test
-- `npm test` - Run all tests using Node.js built-in test runner
-- `node --test test/<name>.test.js` - Run a single test file
+- `npm test` - Run all tests (`test/unit/` and `test/e2e/`) using Node.js built-in test runner
+- `node --test test/unit/` - Run unit tests only
+- `node --test test/e2e/` - Run e2e tests only
+- `node --test <path>` - Run a specific test file
 
 ### Lint
 No formal linting configured. Use standard JavaScript style conventions.

@@ -1,0 +1,281 @@
+```op
+MKDIR: frontend/src
+```
+
+```sr
+FILE: frontend/src/App.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './components/Login';
+import Register from './components/Register';
+import UserProfile from './components/UserProfile';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<UserProfile />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+>>>
+```
+
+```op
+MKDIR: frontend/src/components
+```
+
+```sr
+FILE: frontend/src/components/Login.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('/api/login', { username, password });
+      localStorage.setItem('token', response.data.token);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Username"
+        required
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        required
+      />
+      <button type="submit">Login</button>
+    </form>
+  );
+};
+
+export default Login;
+>>>
+```
+
+```sr
+FILE: frontend/src/components/Register.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Register = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/register', { username, password });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Username"
+        required
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        required
+      />
+      <button type="submit">Register</button>
+    </form>
+  );
+};
+
+export default Register;
+>>>
+```
+
+```sr
+FILE: frontend/src/components/UserProfile.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const UserProfile = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get('/api/user', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  return (
+    <div>
+      {user ? (
+        <>
+          <h2>User Profile</h2>
+          <p>Username: {user.username}</p>
+          {/* Add more user information fields as needed */}
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
+  );
+};
+
+export default UserProfile;
+>>>
+```
+
+```sr
+FILE: frontend/src/main.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(<App />, document.getElementById('root'));
+>>>
+```
+
+```op
+MKDIR: frontend/public
+```
+
+```sr
+FILE: frontend/public/index.html
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+>>>
+```
+
+```sr
+FILE: frontend/vite.config.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});
+>>>
+```
+
+```op
+MKDIR: frontend/src/api
+```
+
+```sr
+FILE: frontend/src/api/index.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: '/api',
+});
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
+>>>
+```

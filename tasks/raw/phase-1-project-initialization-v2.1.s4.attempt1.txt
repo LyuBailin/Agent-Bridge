@@ -1,0 +1,16 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/config/db.js\",\"search\":\"\",\"replace\":\"const { Pool } = require('pg');\\n\\nconst pool = new Pool({\\n  host: process.env.DB_HOST,\\n  port: process.env.DB_PORT,\\n  database: process.env.DB_NAME,\\n  user: process.env.DB_USER,\\n  password: process.env.DB_PASSWORD,\\n});\\n\\nmodule.exports = pool;\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/config\"}"
+      }
+    }
+  ]
+}

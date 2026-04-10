@@ -1,0 +1,85 @@
+```sr
+FILE: backend/routes/data.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const router = express.Router();
+
+// Mock data store
+let items = [];
+
+// GET / (list all)
+router.get('/', (req, res) => {
+  res.json(items);
+});
+
+// GET /:id (get by id)
+router.get('/:id', (req, res) => {
+  const item = items.find(i => i.id === req.params.id);
+  if (item) {
+    res.json(item);
+  } else {
+    res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+// POST / (create new)
+router.post('/', [
+  body('name').isString().notEmpty(),
+  body('value').isInt()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const newItem = {
+    id: items.length + 1,
+    name: req.body.name,
+    value: req.body.value
+  };
+  items.push(newItem);
+  res.status(201).json(newItem);
+});
+
+// PUT /:id (update)
+router.put('/:id', [
+  body('name').isString().notEmpty(),
+  body('value').isInt()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const itemIndex = items.findIndex(i => i.id === req.params.id);
+  if (itemIndex !== -1) {
+    items[itemIndex] = {
+      id: parseInt(req.params.id),
+      name: req.body.name,
+      value: req.body.value
+    };
+    res.json(items[itemIndex]);
+  } else {
+    res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+// DELETE /:id (delete)
+router.delete('/:id', (req, res) => {
+  const itemIndex = items.findIndex(i => i.id === req.params.id);
+  if (itemIndex !== -1) {
+    items.splice(itemIndex, 1);
+    res.status(204).send();
+  } else {
+    res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+module.exports = router;
+>>>
+```

@@ -1,0 +1,22 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/index.js\",\"search\":\"\",\"replace\":\"require('dotenv').config();\\nconst { Pool } = require('pg');\\n\\nconst pool = new Pool({\\n  host: process.env.DB_HOST,\\n  port: process.env.DB_PORT,\\n  database: process.env.DB_NAME,\\n  user: process.env.DB_USER,\\n  password: process.env.DB_PASSWORD,\\n});\\n\\npool.connect(err => {\\n  if (err) {\\n    console.error('Connection error', err.stack);\\n  } else {\\n    console.log('Connected to the database');\\n  }\\n});\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/.env\",\"search\":\"\",\"replace\":\"DB_HOST=localhost\\nDB_PORT=5432\\nDB_NAME=mydatabase\\nDB_USER=myuser\\nDB_PASSWORD=mypassword\"}"
+      }
+    }
+  ]
+}

@@ -71,8 +71,13 @@ async function callOllama(prompt, modelConfig = {}, useFunctionCalling = false) 
       if (!textContent) {
         throw new Error("Function calling requested but no tool_calls returned and no text output");
       }
+      // If allowFallback is true, return the text content as a fallback
+      // The caller will handle parsing it as text-based sr/op blocks
+      if (modelConfig?.allowFallback) {
+        return textContent;
+      }
       throw new Error(
-        "Function calling requested but model returned no tool_calls. Set functionCalling.required=false to allow text fallback."
+        "Function calling requested but model returned no tool_calls. Set allowFallback=true to allow text fallback."
       );
     }
 

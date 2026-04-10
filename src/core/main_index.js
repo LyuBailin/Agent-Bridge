@@ -217,7 +217,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   await loadDotEnv(args.root);
   const env = await initEnvironment(args.root);
-  const deps = { safeReadJson, sleep, appendLog, isQueuedTask, executeWorkflow };
+  const deps = { safeReadJson: env._safeReadJson, sleep, appendLog: env._appendLog, isQueuedTask: env._isQueuedTask, executeWorkflow };
   await pollLoop(env, deps, { once: args.once });
 }
 
