@@ -89,6 +89,7 @@ async function semanticVerify(task, workspaceDir, gitManager, claudeProvider, op
   }
 
   const maxDiffBytes = Number.isFinite(opts?.max_diff_bytes) ? opts.max_diff_bytes : 200_000;
+  const changedFiles = Array.isArray(opts?.changed_files) ? opts.changed_files : [];
 
   let diffText = "";
   try {
@@ -106,21 +107,46 @@ async function semanticVerify(task, workspaceDir, gitManager, claudeProvider, op
     diffText = diffText.slice(0, maxDiffBytes) + "\n... (diff truncated)\n";
   }
 
+  // Collect actual file contents for newly added/modified files so reviewer can see
+  // the full picture instead of just the diff (which omits content of new files).
+  let fileContentsText = "";
+  if (changedFiles.length > 0) {
+    const maxContentBytes = 80_000;
+    let totalBytes = 0;
+    const parts = [];
+    for (const rel of changedFiles) {
+      if (totalBytes >= maxContentBytes) break;
+      try {
+        const resolved = path.resolve(workspaceDir, rel);
+        const stat = await fs.stat(resolved);
+        if (!stat.isFile()) continue;
+        const content = await fs.readFile(resolved, "utf8");
+        const snippet = content.slice(0, 10_000); // cap per file
+        totalBytes += snippet.length;
+        parts.push(`=== FILE: ${rel} ===\n${snippet}`);
+      } catch {
+        // skip files we can't read
+      }
+    }
+    if (parts.length > 0) {
+      fileContentsText = "\n\nFILE CONTENTS (new/modified files):\n" + parts.join("\n\n");
+    }
+  }
+
   const schema = claudeProvider?.jsonSchemas?.review ?? buildReviewSchema();
 
   const system = [
-    "You are a strict code reviewer.",
-    "Your job is to semantically verify the proposed changes are correct, safe, and consistent with the user's instruction.",
-    "Treat logic bugs, security issues, and obvious broken behavior as blockers (ok=false).",
+    "You are a code reviewer verifying semantic correctness of code changes.",
+    "Your job is to verify proposed changes are correct, safe, and consistent with the user's instruction.",
+    "IMPORTANT - Blocking criteria: Only block ACTUAL bugs that would crash or break functionality.",
+    "Examples of BLOCKERS: calling non-existent functions, obvious type errors, security vulnerabilities.",
+    "Examples of NON-BLOCKERS (just warn): style issues, missing error handling, refactoring changes.",
+    "If you cannot verify a change due to missing context (e.g., new file content not fully visible), do NOT block - set ok=true and note it in feedback.",
+    "Do NOT flag changes as broken just because a new file is referenced but you haven't seen its content.",
     "If there are no blockers, set ok=true (warnings can still be listed).",
     "",
-    "CRITICAL: You MUST return a JSON object that matches the provided JSON Schema exactly.",
-    "The JSON object MUST contain ALL required fields: ok (boolean), issues (array), and feedback_for_generator (string).",
-    "Ensure the JSON is valid and properly formatted.",
-    "Do NOT include any extra text, explanations, or code blocks outside the JSON object.",
-    "Return ONLY the JSON object, nothing else.",
-    "Example of correct output format:",
-    '{"ok": true, "issues": [], "feedback_for_generator": "No issues found"}'
+    "CRITICAL: Return ONLY valid JSON matching the schema. No extra text.",
+    "Example: {\"ok\": true, \"issues\": [], \"feedback_for_generator\": \"No issues found\"}"
   ].join("\n");
 
   const user = [
@@ -129,7 +155,8 @@ async function semanticVerify(task, workspaceDir, gitManager, claudeProvider, op
     String(task?.instruction ?? ""),
     "",
     "GIT DIFF:",
-    diffText || "(no diff)"
+    diffText || "(no diff)",
+    fileContentsText
   ].join("\n");
 
   const json = await claudeProvider.generateJson({ system, user, schema, timeout_ms: opts?.timeout_ms });

@@ -671,7 +671,8 @@ async function orchestrateLongTask(env, task) {
             subtaskTask,
             env.workspaceDir,
             gitManager,
-            claudeProvider
+            claudeProvider,
+            { changed_files: applyResult?.appliedFiles ?? [] }
           );
           if (!semRes.ok) {
             const err = new Error(
