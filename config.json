@@ -26,7 +26,7 @@
     "enabled": true,
     "provider": "claude_cli",
     "cli_path": "claude",
-    "model": "",
+    "model": "MiniMax-M2.7",
     "timeout_ms": 300000,
     "json_strict": true
   },

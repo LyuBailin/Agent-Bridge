@@ -1,0 +1,20 @@
+```op
+MKDIR: backend/node_modules
+```
+
+```sr
+FILE: backend/package.json
+SEARCH:
+<<<
+"scripts": {
+>>>
+REPLACE:
+<<<
+"scripts": {
+  "test": "jest"
+},
+"devDependencies": {
+  "jest": "^29.5.0",
+  "supertest": "^6.3.0"
+}
+>>>
