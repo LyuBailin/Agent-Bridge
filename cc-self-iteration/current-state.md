@@ -9,7 +9,8 @@
 | 3 | 完成 | Task 1-3 全部完成 (Bug修复) |
 | 4 | 完成 | BUG-002修复 + Phase 5 手动完成 |
 | 5 | 完成 | Task 1-7 全部完成 (双向import扩展 + 解析增强 + 存在性校验) |
-| 6 | 待开始 | Task 1-6 (Pre-Hooks旁路修复 + 并发竞争条件修复 + 日志/验证/正则修复) |
+| 6 | 完成 | 分析完成：11 个 bug 识别（Pre-Hooks旁路、并发竞争、日志空、验证绕过、正则不完整等） |
+| 7 | 完成 | Task 1,3,4,5,6 完成 (Pre-Hooks修复 + AppliedChanges修复 + 语义验证修复 + Import正则补充)；Task-2 跳过 |
 
 ## 已完成的优化
 
@@ -43,12 +44,27 @@
 4. **问题识别**: 语义验证 shape salvage 逻辑有问题（issues 非空时仍设 ok=true）
 5. **问题识别**: Import 正则遗漏三种常见语法（import "file"、import * as name、export default from）
 
+### 迭代 7
+1. **Pre-Hooks 修复**: parseToolCalls 改为 async，执行 pre-hooks 循环
+2. **AppliedChanges 修复**: 使用 appliedFiles 构造 appliedChanges
+3. **语义验证绕过修复**: salvage 时检查 issues 非空设置 ok=false
+4. **Import 正则补充**: 增加 sideEffectImportRe, namespaceImportRe, exportDefaultFromRe
+5. **测试适配**: parser.test.js async 测试更新
+
 ## 待处理问题
 
-### 迭代 6 待办（高优先级）
-- **Pre-Hooks 修复**: 在 parseToolCalls 返回前调用 executePreHooksBatch
-- **并发竞争修复**: task.json 状态更新使用原子操作
-- **AppliedChanges 修复**: workflow.js 中直接用 appliedFiles 构造 appliedChanges
+### 迭代 7 延后项
+- **并发竞争条件**: task.json 状态原子更新（高优先级，待迭代 8）
+
+### 迭代 6 待办（已取消）
+- ~~Pre-Hooks 修复~~ → 已在迭代 7 完成
+- ~~AppliedChanges 修复~~ → 已在迭代 7 完成
+- ~~语义验证绕过修复~~ → 已在迭代 7 完成
+
+### 迭代 5 待办（已完成）
+- ~~双向 import 图扩展~~ → 已在迭代 5 完成
+- ~~import graph 解析改进~~ → 已在迭代 5 完成
+- ~~likelyPaths 文件存在性校验~~ → 已在迭代 5 完成
 
 ### 迭代 5 待办（高优先级）
 - **双向 import 图扩展**: `expandRelatedFiles` 同时使用 `edges` 和 `reverseEdges`，解决子模块遗漏问题
