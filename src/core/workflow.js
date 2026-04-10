@@ -221,6 +221,71 @@ async function handleApplyFailure(env, subtaskTask, applyResult) {
   return { ctx, snippetText };
 }
 
+/**
+ * Build optimized context for a subtask.
+ * @param {Object} env - Environment
+ * @param {Object} nextSubtask - Subtask with target_files, description
+ * @param {string} difficulty - Overall task difficulty
+ * @param {Object} difficultyInfo - Task difficulty info with likelyPaths
+ * @param {Object} importGraph - Import graph (may be null)
+ * @param {Object} routingCfg - Routing config
+ * @param {string} generatorProviderType - Provider type (ollama/openai/claude_cli)
+ * @returns {Promise<string>} - Optimized context string
+ */
+async function buildSubtaskContext(env, nextSubtask, difficulty, difficultyInfo, importGraph, routingCfg, generatorProviderType) {
+  const gitSummary = await collectGitSummary(env.workspaceDir, 10);
+  const contextText = await fsTools.collectContext(env.workspaceDir, env.config.context_limits);
+  const contextWithGit = [
+    contextText,
+    "",
+    "GIT SUMMARY:",
+    gitSummary.recentCommits.length
+      ? "Recent commits:\n" + gitSummary.recentCommits.map((l) => `- ${l}`).join("\n")
+      : "Recent commits: (unavailable)",
+    gitSummary.diffStat ? `\nDiff stat:\n${gitSummary.diffStat}` : "",
+    gitSummary.nameStatus ? `\nName status:\n${gitSummary.nameStatus}` : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const contextPolicy = routingCfg.context_policy ?? {};
+  let maxTokens = null;
+  if (generatorProviderType === "ollama" || generatorProviderType === "openai") {
+    const profileName = contextPolicy.ollama_profile ?? "default_8k";
+    const profile = contextPolicy.ollama_profiles?.[profileName] ?? null;
+    if (profile && Number.isFinite(profile.max_tokens)) {
+      maxTokens = profile.max_tokens;
+    }
+  }
+
+  let likelyPaths = Array.isArray(nextSubtask.target_files) && nextSubtask.target_files.length
+    ? nextSubtask.target_files
+    : difficultyInfo.likelyPaths;
+
+  let maxExpandedFiles = 20;
+  if (difficulty === "low") {
+    maxExpandedFiles = 8;
+  } else if (difficulty === "medium") {
+    maxExpandedFiles = 15;
+  }
+
+  if (importGraph?.reverseEdges) {
+    likelyPaths = fsTools.expandRelatedFiles({
+      seedFiles: likelyPaths,
+      reverseEdges: importGraph.reverseEdges,
+      depth: 1,
+      maxFiles: maxExpandedFiles
+    });
+  }
+
+  const optimizedContext = planner.optimizeContext(difficulty, contextWithGit, {
+    max_tokens: maxTokens,
+    likely_paths: likelyPaths
+  });
+
+  return optimizedContext;
+}
+
 async function collectGitSummary(workspaceDir, recentCommits = 10) {
   const summary = { recentCommits: [], diffStat: "", nameStatus: "" };
   try {
@@ -450,55 +515,15 @@ async function orchestrateLongTask(env, task) {
 
         semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty !== "low");
 
-        const gitSummary = await collectGitSummary(env.workspaceDir, 10);
-        const contextText = await fsTools.collectContext(env.workspaceDir, env.config.context_limits);
-        const contextWithGit = [
-          contextText,
-          "",
-          "GIT SUMMARY:",
-          gitSummary.recentCommits.length
-            ? "Recent commits:\n" + gitSummary.recentCommits.map((l) => `- ${l}`).join("\n")
-            : "Recent commits: (unavailable)",
-          gitSummary.diffStat ? `\nDiff stat:\n${gitSummary.diffStat}` : "",
-          gitSummary.nameStatus ? `\nName status:\n${gitSummary.nameStatus}` : ""
-        ]
-          .filter(Boolean)
-          .join("\n");
-
-        const contextPolicy = routingCfg.context_policy ?? {};
-        let maxTokens = null;
-        if (generatorProviderType === "ollama" || generatorProviderType === "openai") {
-          const profileName = contextPolicy.ollama_profile ?? "default_8k";
-          const profile = contextPolicy.ollama_profiles?.[profileName] ?? null;
-          if (profile && Number.isFinite(profile.max_tokens)) {
-            maxTokens = profile.max_tokens;
-          }
-        }
-
-        let likelyPaths = Array.isArray(nextSubtask.target_files) && nextSubtask.target_files.length
-          ? nextSubtask.target_files
-          : difficultyInfo.likelyPaths;
-
-        let maxExpandedFiles = 20;
-        if (difficulty === "low") {
-          maxExpandedFiles = 8;
-        } else if (difficulty === "medium") {
-          maxExpandedFiles = 15;
-        }
-
-        if (importGraph?.reverseEdges) {
-          likelyPaths = fsTools.expandRelatedFiles({
-            seedFiles: likelyPaths,
-            reverseEdges: importGraph.reverseEdges,
-            depth: 1,
-            maxFiles: maxExpandedFiles
-          });
-        }
-
-        const optimizedContext = planner.optimizeContext(difficulty, contextWithGit, {
-          max_tokens: maxTokens,
-          likely_paths: likelyPaths
-        });
+        const optimizedContext = await buildSubtaskContext(
+          env,
+          nextSubtask,
+          difficulty,
+          difficultyInfo,
+          importGraph,
+          routingCfg,
+          generatorProviderType
+        );
 
         const subtaskTask = {
           task_id: `${task.task_id}:${subtaskId}`,
