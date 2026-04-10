@@ -1,0 +1,16 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/middleware\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/middleware/auth.js\",\"search\":\"\",\"replace\":\"const jwt = require('jsonwebtoken');\\n\\nconst authMiddleware = (req, res, next) => {\\n  const authHeader = req.headers['authorization'];\\n  const token = authHeader && authHeader.split(' ')[1];\\n\\n  if (!token) return res.sendStatus(401);\\n\\n  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {\\n    if (err) return res.sendStatus(403);\\n    req.user = user;\\n    next();\\n  });\\n};\\n\\nmodule.exports = authMiddleware;\"}"
+      }
+    }
+  ]
+}

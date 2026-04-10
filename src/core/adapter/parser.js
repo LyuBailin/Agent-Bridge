@@ -1,5 +1,8 @@
 const path = require("node:path");
 const { validateOperation, getPathFieldsFromArgs } = require("./validator");
+const { executePreHooks, executePostHooks } = require("./hooks");
+const { classifyBatchRisk, RISK_LEVELS } = require("../risk_classifier");
+const { EMPTY_SEARCH_PATTERNS } = require("../../shared/constants");
 
 function extractResponseText(json) {
   if (!json || typeof json !== "object") return "";
@@ -27,17 +30,11 @@ function parseSrBlock(blockText) {
   const file = fileMatch[1].trim();
 
   const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\s*([\s\S]*?)\s*>>>\s*/m);
-  if (!searchMatch) throw new Error(`sr block missing SEARCH for ${file}`);
   const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\s*([\s\S]*?)\s*>>>\s*/m);
   if (!replaceMatch) throw new Error(`sr block missing REPLACE for ${file}`);
 
-  let search = searchMatch[1];
-  const emptySearchPatterns = [
-    "(exact text from file; must be empty when creating new file)",
-    "(empty)",
-    "(exact text from the file; must be empty when creating a new file)"
-  ];
-  if (emptySearchPatterns.includes(search.trim())) {
+  let search = searchMatch ? searchMatch[1] : "";
+  if (search.trim() !== "" && EMPTY_SEARCH_PATTERNS.includes(search.trim())) {
     search = "";
   }
 
@@ -50,11 +47,15 @@ function parseOpBlock(blockText) {
 
   const operations = [];
   for (const line of lines) {
-    if (line.startsWith("MKDIR:")) {
-      const dirPath = line.slice("MKDIR:".length).trim();
-      operations.push({ type: "mkdir", path: dirPath });
-    } else if (line.startsWith("MV:")) {
-      const mvPart = line.slice("MV:".length).trim();
+    // Handle MKDIR with or without colon
+    if (line.startsWith("MKDIR:") || line.startsWith("MKDIR ")) {
+      const separator = line.startsWith("MKDIR:") ? "MKDIR:" : "MKDIR ";
+      const dirPath = line.slice(separator.length).trim();
+      if (dirPath) operations.push({ type: "mkdir", path: dirPath });
+    } else if (line.startsWith("MV:") || line.startsWith("MV ")) {
+      // Handle MV with or without colon
+      const separator = line.startsWith("MV:") ? "MV:" : "MV ";
+      const mvPart = line.slice(separator.length).trim();
       const arrowMatch = mvPart.match(/->|to\s+/i);
       if (arrowMatch) {
         const idx = arrowMatch.index;
@@ -71,15 +72,22 @@ function parseOpBlock(blockText) {
         continue;
       }
       throw new Error(`Invalid MV syntax: ${line}. Expected: MV: source -> target`);
-    } else if (line.startsWith("RM:")) {
-      const rmPath = line.slice("RM:".length).trim();
-      operations.push({ type: "rm", path: rmPath });
+    } else if (line.startsWith("RM:") || line.startsWith("RM ")) {
+      // Handle RM with or without colon
+      const separator = line.startsWith("RM:") ? "RM:" : "RM ";
+      const rmPath = line.slice(separator.length).trim();
+      if (rmPath) operations.push({ type: "rm", path: rmPath });
+    } else if (line.startsWith("TOUCH:") || line.startsWith("TOUCH ")) {
+      // Handle TOUCH with or without colon
+      const separator = line.startsWith("TOUCH:") ? "TOUCH:" : "TOUCH ";
+      const filePath = line.slice(separator.length).trim();
+      if (filePath) operations.push({ type: "touch", path: filePath });
     }
   }
 
   if (operations.length === 0) {
     throw new Error(
-      `Invalid op block: no recognized operation found. Expected MKDIR, MV, or RM. Got: ${blockText}`
+      `Invalid op block: no recognized operation found. Expected MKDIR:, MV:, RM:, or TOUCH: (with or without colon). Got: ${blockText}`
     );
   }
 
@@ -111,7 +119,7 @@ function parseResponse(rawText, fsTools, workspaceDir) {
       const parsedOperations = parseOpBlock(blockContent);
       for (const parsed of parsedOperations) {
         try {
-          if (parsed.type === "mkdir" || parsed.type === "rm") {
+          if (parsed.type === "mkdir" || parsed.type === "rm" || parsed.type === "touch") {
             fsTools.resolveInWorkspace(workspaceDir, parsed.path);
           } else if (parsed.type === "mv") {
             fsTools.resolveInWorkspace(workspaceDir, parsed.from);
@@ -186,6 +194,13 @@ function parseStructuredTextToToolCalls(text) {
               arguments: JSON.stringify({ path: op.path })
             }
           });
+        } else if (op.type === "touch") {
+          toolCalls.push({
+            function: {
+              name: "touch",
+              arguments: JSON.stringify({ path: op.path })
+            }
+          });
         }
       }
     }
@@ -196,9 +211,31 @@ function parseStructuredTextToToolCalls(text) {
 
 /**
  * Parse tool calls from function calling response into internal change format.
+ * Integrates risk classification and pre-execution hooks.
+ *
+ * @param {Array} toolCalls - Array of tool call objects from model
+ * @param {Object} fsTools - File system tools for path resolution
+ * @param {string} workspaceDir - Workspace directory path
+ * @param {Object} options - Additional options
+ * @param {Object} options.metadata - Metadata for hooks (workspaceDir, fsTools, etc.)
+ * @param {boolean} options.skipHooks - Skip hook execution (for testing)
+ * @returns {Object} - { changes: Array, riskAssessment: Object }
  */
-function parseToolCalls(toolCalls, fsTools, workspaceDir) {
+function parseToolCalls(toolCalls, fsTools, workspaceDir, options = {}) {
   const changes = [];
+  const metadata = options.metadata || { workspaceDir, fsTools };
+
+  // Run risk classification in parallel with validation
+  const riskAssessment = classifyBatchRisk(toolCalls);
+
+  // If blocking issues found, throw early (synchronous)
+  if (riskAssessment.blockingIssues.length > 0) {
+    const blocking = riskAssessment.blockingIssues[0];
+    throw new Error(
+      `Blocking risk detected in ${blocking.tool}: ${blocking.message} ` +
+      `(risk level: ${blocking.level})`
+    );
+  }
 
   for (const toolCall of toolCalls) {
     const func = toolCall.function || toolCall;
@@ -215,6 +252,7 @@ function parseToolCalls(toolCalls, fsTools, workspaceDir) {
       args = func.arguments || {};
     }
 
+    // Validate operation (checks DENIED_OPERATIONS whitelist)
     validateOperation(name);
 
     const pathFields = getPathFieldsFromArgs(name, args);
@@ -293,7 +331,30 @@ function parseToolCalls(toolCalls, fsTools, workspaceDir) {
     }
   }
 
-  return changes;
+  return { changes, riskAssessment };
+}
+
+/**
+ * Execute pre-execution hooks for a batch of tool calls.
+ * This is separate from parseToolCalls to keep sync validation clean.
+ *
+ * @param {Array} toolCalls - Array of tool calls to run hooks for
+ * @param {Object} metadata - Metadata for hooks
+ * @returns {Promise<Array>} - Array of hook results
+ */
+async function executePreHooksBatch(toolCalls, metadata = {}) {
+  const results = [];
+  for (const toolCall of toolCalls) {
+    const func = toolCall.function || toolCall;
+    const name = func.name;
+    const args = typeof func.arguments === "string"
+      ? JSON.parse(func.arguments)
+      : func.arguments || {};
+
+    const hookResult = await executePreHooks(name, args, metadata);
+    results.push({ name, args, hookResult });
+  }
+  return results;
 }
 
 module.exports = {

@@ -1,0 +1,28 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend/routes\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/index.js\",\"search\":\"const express = require('express');\\nconst app = express();\",\"replace\":\"const express = require('express');\\nconst app = express();\\nconst authRoutes = require('./routes/auth');\\n\\napp.use('/auth', authRoutes);\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/routes/auth.js\",\"search\":\"// placeholder for auth routes\",\"replace\":\"const express = require('express');\\nconst router = express.Router();\\nconst bcrypt = require('bcryptjs');\\nconst jwt = require('jsonwebtoken');\\nconst User = require('../models/User'); // Assuming you have a User model\\n\\nconst { check, validationResult } = require('express-validator');\\n\\n// Middleware to parse JSON bodies\\napp.use(express.json());\\n\\n// POST /register\\nrouter.post('/register', [\\n  check('email').isEmail(),\\n  check('password').isLength({ min: 6 })\\n], async (req, res) => {\\n  const errors = validationResult(req);\\n  if (!errors.isEmpty()) {\\n    return res.status(400).json({ errors: errors.array() });\\n  }\\n\\n  const { email, password } = req.body;\\n\\n  try {\\n    let user = await User.findOne({ email });\\n    if (user) {\\n      return res.status(400).json({ msg: 'User already exists' });\\n    }\\n\\n    user = new User({\\n      email,\\n      password\\n    });\\n\\n    const salt = await bcrypt.genSalt(10);\\n    user.password = await bcrypt.hash(password, salt);\\n\\n    await user.save();\\n\\n    const payload = {\\n      user: {\\n        id: user.id\\n      }\\n    };\\n\\n    jwt.sign(\\n      payload,\\n      'your_jwt_secret', // Replace with your actual secret\\n      { expiresIn: 3600 },\\n      (err, token) => {\\n        if (err) throw err;\\n        res.json({ token });\\n      }\\n    );\\n  } catch (err) {\\n    console.error(err.message);\\n    res.status(500).send('Server error');\\n  }\\n});\\n\\n// POST /login\\nrouter.post('/login', [\\n  check('email').isEmail(),\\n  check('password').exists()\\n], async (req, res) => {\\n  const errors = validationResult(req);\\n  if (!errors.isEmpty()) {\\n    return res.status(400).json({ errors: errors.array() });\\n  }\\n\\n  const { email, password } = req.body;\\n\\n  try {\\n    let user = await User.findOne({ email });\\n    if (!user) {\\n      return res.status(400).json({ msg: 'Invalid credentials' });\\n    }\\n\\n    const isMatch = await bcrypt.compare(password, user.password);\\n    if (!isMatch) {\\n      return res.status(400).json({ msg: 'Invalid credentials' });\\n    }\\n\\n    const payload = {\\n      user: {\\n        id: user.id\\n      }\\n    };\\n\\n    jwt.sign(\\n      payload,\\n      'your_jwt_secret', // Replace with your actual secret\\n      { expiresIn: 3600 },\\n      (err, token) => {\\n        if (err) throw err;\\n        res.json({ token });\\n      }\\n    );\\n  } catch (err) {\\n    console.error(err.message);\\n    res.status(500).send('Server error');\\n  }\\n});\\n\\nmodule.exports = router;\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/models/User.js\",\"search\":\"// placeholder for User model\",\"replace\":\"const mongoose = require('mongoose');\\n\\nconst UserSchema = new mongoose.Schema({\\n  email: {\\n    type: String,\\n    required: true,\\n    unique: true\\n  },\\n  password: {\\n    type: String,\\n    required: true\\n  }\\n});\\n\\nmodule.exports = mongoose.model('User', UserSchema);\"}"
+      }
+    }
+  ]
+}

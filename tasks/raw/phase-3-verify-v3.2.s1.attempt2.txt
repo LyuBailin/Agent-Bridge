@@ -1,0 +1,11 @@
+```sr
+FILE: frontend/src/components/Logout.js
+SEARCH:
+<<<
+const Logout = () => {
+>>>
+REPLACE:
+<<<
+const Logout = ({ onLogout }) => {
+>>>
+```

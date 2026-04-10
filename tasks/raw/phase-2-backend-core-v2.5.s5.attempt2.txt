@@ -1,0 +1,50 @@
+```sr
+FILE: backend/routes/users.js
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User'); // Adjust the path based on your actual model location
+
+// Middleware for authentication (assuming you have an auth middleware)
+const { authenticateUser } = require('../middleware/auth');
+
+// GET /:id - Fetch user by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /:id - Update user data
+router.put('/:id', authenticateUser, async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const updatedFields = { name, email };
+
+    // Find the user and update
+    const user = await User.findByIdAndUpdate(req.params.id, updatedFields, { new: true, runValidators: true });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json(error.errors);
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+module.exports = router;
+>>>
+```

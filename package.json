@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "start": "node src/core/main.js",
-    "test": "node --test",
+    "test": "node --test test/unit/ test/e2e/",
     "db:init": "node backend/scripts/initDb.js",
     "db:test": "node --test backend/tests/"
   }

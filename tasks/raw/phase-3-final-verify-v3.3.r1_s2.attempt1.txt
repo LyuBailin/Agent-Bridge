@@ -1,0 +1,16 @@
+```sr
+FILE: frontend/vite.config.js
+SEARCH:
+<<<
+import { defineConfig } from 'vite';
+>>>
+REPLACE:
+<<<
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});
+>>>
+```

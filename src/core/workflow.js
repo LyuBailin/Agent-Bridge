@@ -9,6 +9,92 @@ const planner = require("./planner");
 const verifier = require("./verifier");
 const snippetFeedback = require("../utils/snippet_feedback");
 
+// Log levels for claude.log
+const LEVEL = { INFO: "INFO", WARN: "WARN", ERROR: "ERROR", OK: "OK", DIAG: "DIAG" };
+
+function formatTimestamp(date) {
+  const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  const d = beijingTime.toISOString().replace("T", " ").slice(0, 19);
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+  return `${d}.${ms}`;
+}
+
+async function logClaudeWorkflow(env, message, level = LEVEL.INFO) {
+  const claudeLogPath = path.join(env.rootDir, "claude.log");
+  const timestamp = formatTimestamp(new Date());
+  const logMessage = `[${timestamp}] [${level.padEnd(5)}] ${message}\n`;
+  try {
+    await fs.appendFile(claudeLogPath, logMessage, "utf8");
+  } catch (err) {
+    console.error("Failed to write to claude.log:", err);
+  }
+}
+
+/**
+ * Context Modifier Buffer for Parallel Tool Execution
+ *
+ * When tools execute in parallel, context modifiers (state changes) are buffered
+ * and replayed in the original tool-use block order to maintain causal consistency.
+ */
+class ContextModifierBuffer {
+  constructor() {
+    this.buffer = [];
+    this.enabled = false;
+  }
+
+  /**
+   * Enable buffering mode
+   */
+  enable() {
+    this.enabled = true;
+    this.buffer = [];
+  }
+
+  /**
+   * Disable buffering and return buffered modifiers
+   */
+  disable() {
+    this.enabled = false;
+    const result = this.buffer.slice();
+    this.buffer = [];
+    return result;
+  }
+
+  /**
+   * Add a context modifier to the buffer
+   * @param {number} toolIndex - Original position in tool-use block
+   * @param {Object} modifier - Context modifier object
+   */
+  add(toolIndex, modifier) {
+    if (this.enabled) {
+      this.buffer.push({ toolIndex, modifier, timestamp: Date.now() });
+    }
+  }
+
+  /**
+   * Replay buffered modifiers in original order
+   * @param {Function} applyFn - Function to apply each modifier
+   */
+  async replayInOrder(applyFn) {
+    // Sort by tool index to maintain causal order
+    const sorted = this.buffer.sort((a, b) => a.toolIndex - b.toolIndex);
+
+    for (const entry of sorted) {
+      await Promise.resolve(applyFn(entry.modifier));
+    }
+  }
+
+  /**
+   * Clear the buffer without replaying
+   */
+  clear() {
+    this.buffer = [];
+  }
+}
+
+// Global context modifier buffer instance
+const contextModifierBuffer = new ContextModifierBuffer();
+
 // Logging helper shared by workflow functions
 async function logOllamaAction(env, { taskId, subtaskId, toolCalls, appliedChanges, result, error, durationMs, provider }) {
   const ollamaLogPath = path.join(env.rootDir, env.config.paths.ollamaLog ?? "ollama.log");
@@ -32,9 +118,33 @@ async function logOllamaAction(env, { taskId, subtaskId, toolCalls, appliedChang
     error: error || null
   };
 
-  const logLine = JSON.stringify(logEntry);
+  const ts = logEntry.timestamp.replace("T", " ").slice(0, 23);
+  let msg = `[${ts}]`;
+  if (taskId) msg += ` [${taskId}]`;
+  if (subtaskId) msg += ` [${subtaskId}]`;
+  msg += `\n`;
+
+  msg += `  Provider: ${model}\n`;
+  if (durationMs != null) msg += `  Duration: ${durationMs}ms\n`;
+  if (logEntry.toolCalls.length > 0) {
+    msg += `  ToolCalls:\n`;
+    for (const tc of logEntry.toolCalls) {
+      msg += `    - ${tc.op}`;
+      if (tc.file) msg += ` (${tc.file})`;
+      if (tc.path) msg += ` -> ${tc.path}`;
+      if (tc.from && tc.to) msg += ` ${tc.from} -> ${tc.to}`;
+      msg += `\n`;
+    }
+  }
+  if (logEntry.applied.length > 0) {
+    msg += `  Applied: ${logEntry.applied.join(", ")}\n`;
+  }
+  if (result) msg += `  Result: ${result}\n`;
+  if (error) msg += `  Error: ${error}\n`;
+  msg += `\n`;
+
   try {
-    await fs.appendFile(ollamaLogPath, `[${logEntry.timestamp}] ${logLine}\n`, "utf8");
+    await fs.appendFile(ollamaLogPath, msg, "utf8");
   } catch (err) {
     console.error("Failed to write to ollama.log:", err);
   }
@@ -59,6 +169,56 @@ function handleFailure(stage, err, taskContext) {
     details: err?.details ?? null,
     task_id: taskContext?.task_id ?? null
   };
+}
+
+/**
+ * Handle apply failure with snippet feedback for SEARCH/REPLACE errors.
+ * @param {Object} env - Environment with workspaceDir
+ * @param {Object} subtaskTask - Subtask info
+ * @param {Object} applyResult - Result from safeApplyPatch
+ * @returns {Object} - { ctx, snippetText } or { ctx, snippetText: null }
+ */
+async function handleApplyFailure(env, subtaskTask, applyResult) {
+  const ctx = handleFailure("apply", applyResult.error ?? new Error("apply failed"), subtaskTask);
+  let snippetText = null;
+
+  if (snippetFeedback.isSearchGot0Error(applyResult.error) && typeof applyResult?.error?.file === "string") {
+    const relPath = applyResult.error.file;
+    const occurrences = applyResult?.error?.details?.occurrences;
+    const searchPreview = applyResult?.error?.details?.search_preview;
+    const anchors =
+      Array.isArray(applyResult?.error?.details?.search_anchors) && applyResult.error.details.search_anchors.length
+        ? applyResult.error.details.search_anchors
+        : snippetFeedback.deriveAnchorsFromPreview(searchPreview);
+
+    const snippetRes = await snippetFeedback.collectSnippetsForFile({
+      workspaceDir: env.workspaceDir,
+      relPath,
+      fsTools,
+      anchors,
+      maxChars: 4000
+    });
+    snippetText = snippetFeedback.formatSearchGot0Feedback({
+      relPath,
+      occurrences,
+      searchPreview,
+      snippets: snippetRes
+    });
+
+    if (snippetText && typeof snippetText === "string") {
+      ctx.message = `${ctx.message}\n\n${snippetText}`;
+    }
+    ctx.details = {
+      ...(ctx.details && typeof ctx.details === "object" ? ctx.details : {}),
+      file: relPath,
+      occurrences: Number.isFinite(occurrences) ? occurrences : undefined,
+      search_preview: typeof searchPreview === "string" ? searchPreview : undefined,
+      file_snippets: snippetRes && typeof snippetRes === "object" ? snippetRes : undefined,
+      snippet_feedback: snippetText
+    };
+  }
+
+  return { ctx, snippetText };
 }
 
 async function collectGitSummary(workspaceDir, recentCommits = 10) {
@@ -187,7 +347,7 @@ async function orchestrateLongTask(env, task) {
     if (providerType === "openai") {
       generatorProvider = adapter.createProvider("openai", { openai: env.config.openai, useFunctionCalling });
     } else {
-      generatorProvider = adapter.createProvider("ollama", { ollama: env.config.ollama, useFunctionCalling });
+      generatorProvider = adapter.createProvider("ollama", { ollama: env.config.ollama, useFunctionCalling, functionCalling: env.config.functionCalling });
     }
     const claudeProvider = phase3Enabled
       ? adapter.createProvider("claude_cli", { anthropic: env.config.anthropic })
@@ -255,6 +415,8 @@ async function orchestrateLongTask(env, task) {
         checkpoint_shas: { before: checkpointBeforeSha, commit: null }
       });
 
+      await logClaudeWorkflow(env, `═══ Subtask [${subtaskId}] START ═══ Task=${task.task_id} | Files: ${(nextSubtask.target_files || []).join(", ") || "N/A"}`, LEVEL.INFO);
+
       const subtaskFeedback = [];
       let subtaskOk = false;
       let subtaskAttempt = 0;
@@ -267,6 +429,7 @@ async function orchestrateLongTask(env, task) {
 
       for (let attempt = 1; attempt <= MAX_RETRY; attempt += 1) {
         subtaskAttempt = attempt;
+        await logClaudeWorkflow(env, `  Attempt ${attempt}/${MAX_RETRY} for Subtask [${subtaskId}]`, LEVEL.DIAG);
         await gitManager.rollbackToSha(env.workspaceDir, checkpointBeforeSha);
 
         const operationType = adapter.detectOperationType(nextSubtask.description);
@@ -344,7 +507,7 @@ async function orchestrateLongTask(env, task) {
 
         const prompt = adapter.buildPrompt(subtaskTask, optimizedContext, subtaskFeedback, operationType);
         lastStage = "generate";
-        const rawResponse = await currentGeneratorProvider.generateCode(prompt);
+        let rawResponse = await currentGeneratorProvider.generateCode(prompt);
 
         let rawText;
         const rawOutPath = path.join(
@@ -366,7 +529,10 @@ async function orchestrateLongTask(env, task) {
             if (rawResponse && typeof rawResponse === "object" && Array.isArray(rawResponse.tool_calls)) {
               rawText = JSON.stringify(rawResponse, null, 2);
               await fs.writeFile(rawOutPath, rawText, "utf8");
-              changes = adapter.parseToolCalls(rawResponse.tool_calls, fsTools, env.workspaceDir);
+              const parsedResult = await adapter.parseToolCalls(rawResponse.tool_calls, fsTools, env.workspaceDir);
+              changes = parsedResult.changes;
+              // Risk assessment is logged but not used to block - hooks handle blocking
+              const riskAssessment = parsedResult.riskAssessment;
             } else {
               rawText = String(rawResponse ?? "");
               await fs.writeFile(rawOutPath, rawText, "utf8");
@@ -442,42 +608,7 @@ async function orchestrateLongTask(env, task) {
         lastStage = "apply";
         applyResult = await gitManager.safeApplyPatch(env.workspaceDir, changes, fsTools);
         if (!applyResult.ok) {
-          const ctx = handleFailure("apply", applyResult.error ?? new Error("apply failed"), subtaskTask);
-          if (snippetFeedback.isSearchGot0Error(applyResult.error) && typeof applyResult?.error?.file === "string") {
-            const relPath = applyResult.error.file;
-            const occurrences = applyResult?.error?.details?.occurrences;
-            const searchPreview = applyResult?.error?.details?.search_preview;
-            const anchors =
-              Array.isArray(applyResult?.error?.details?.search_anchors) && applyResult.error.details.search_anchors.length
-                ? applyResult.error.details.search_anchors
-                : snippetFeedback.deriveAnchorsFromPreview(searchPreview);
-
-            const snippetRes = await snippetFeedback.collectSnippetsForFile({
-              workspaceDir: env.workspaceDir,
-              relPath,
-              fsTools,
-              anchors,
-              maxChars: 4000
-            });
-            const snippetText = snippetFeedback.formatSearchGot0Feedback({
-              relPath,
-              occurrences,
-              searchPreview,
-              snippets: snippetRes
-            });
-
-            if (snippetText && typeof snippetText === "string") {
-              ctx.message = `${ctx.message}\n\n${snippetText}`;
-            }
-            ctx.details = {
-              ...(ctx.details && typeof ctx.details === "object" ? ctx.details : {}),
-              file: relPath,
-              occurrences: Number.isFinite(occurrences) ? occurrences : undefined,
-              search_preview: typeof searchPreview === "string" ? searchPreview : undefined,
-              file_snippets: snippetRes && typeof snippetRes === "object" ? snippetRes : undefined,
-              snippet_feedback: snippetText
-            };
-          }
+          const { ctx } = await handleApplyFailure(env, subtaskTask, applyResult);
           errors.push({ attempt, stage: ctx.stage, message: ctx.message, details: ctx.details });
           subtaskFeedback.push(ctx);
           planTree = planner.updatePlanState(planTree, subtaskId, {
@@ -551,6 +682,8 @@ async function orchestrateLongTask(env, task) {
           error: null
         });
 
+        await logClaudeWorkflow(env, `  [${subtaskId}] SUCCESS | Changes: ${(changes || []).map((c) => `${c.type}:${c.file || c.path || c.target}`).join(", ") || "none"} | Commit: ${checkpointCommitSha}`, LEVEL.OK);
+
         lastStage = "commit_checkpoint";
         checkpointCommitSha = await gitManager.commitCheckpoint(env.workspaceDir, {
           taskId: task.task_id,
@@ -619,6 +752,8 @@ async function orchestrateLongTask(env, task) {
           result: "failure",
           error: lastError
         });
+
+        await logClaudeWorkflow(env, `  [${subtaskId}] FAILED | Error: ${lastError?.slice(0, 200)} | Stage: ${lastStage}`, LEVEL.ERROR);
 
         await gitManager.rollbackToSha(env.workspaceDir, lastStableSha || checkpointBeforeSha);
 
@@ -783,5 +918,9 @@ module.exports = {
   summarizeIssues,
   handleFailure,
   collectGitSummary,
-  logOllamaAction
+  logOllamaAction,
+  logClaudeWorkflow,
+  ContextModifierBuffer,
+  contextModifierBuffer,
+  LEVEL
 };

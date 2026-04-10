@@ -463,7 +463,13 @@ function normalizePlanArrayToTree(taskId, subtasks, limits = {}) {
     if (nodes[id]) throw new Error(`duplicate subtask_id: ${id}`);
     const description = String(st.description ?? "").trim();
     if (!description) throw new Error(`subtask ${id} missing description`);
-    const targetFiles = Array.isArray(st.target_files) ? st.target_files.map((x) => String(x)) : [];
+
+    // Validate target_files is non-empty
+    if (!Array.isArray(st.target_files) || st.target_files.length === 0) {
+      throw new Error(`subtask ${id} has empty target_files - planner must populate with actual file paths`);
+    }
+
+    const targetFiles = st.target_files.map((x) => String(x));
     const deps = Array.isArray(st.dependencies) ? st.dependencies.map((x) => String(x)) : [];
 
     const safeTargets = [];
@@ -473,6 +479,10 @@ function normalizePlanArrayToTree(taskId, subtasks, limits = {}) {
       } catch {
         // ignore unsafe entries
       }
+    }
+
+    if (safeTargets.length === 0) {
+      throw new Error(`subtask ${id} has no valid target_files after filtering`);
     }
 
     nodes[id] = {

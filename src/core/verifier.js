@@ -215,7 +215,10 @@ async function verifyAll(task, workspaceDir, applyResult, gitManager, fsTools, c
     }
 
     // If file doesn't exist (unexpected), surface it cleanly instead of throwing a misleading "Cannot find module".
-    const exists = await fs.stat(resolved.abs).then(() => true).catch((e) => (e && e.code === "ENOENT" ? false : true));
+    const exists = await fs.stat(resolved.abs).then(() => true).catch((e) => {
+      if (e && e.code === "ENOENT") return false;
+      throw e;
+    });
     if (!exists) {
       issues.push({
         kind: "missing_file",

@@ -2,6 +2,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
+const { EMPTY_SEARCH_PATTERNS } = require("../shared/constants");
 
 const execFileAsync = promisify(execFile);
 
@@ -90,6 +91,151 @@ function countOccurrences(haystack, needle) {
   return count;
 }
 
+// Helper: resolve path and wrap unsafe path errors
+function resolvePath(fsTools, workspaceDir, relPath) {
+  try {
+    return { resolved: fsTools.resolveInWorkspace(workspaceDir, relPath), error: null };
+  } catch (e) {
+    return { resolved: null, error: { kind: "unsafe_path", file: relPath, message: e.message } };
+  }
+}
+
+// Strategy handlers for change types
+
+async function handleEdit(change, workspaceDir, fsTools) {
+  if (typeof change.file !== "string") {
+    return { ok: false, error: { kind: "invalid_change", file: null, message: "Invalid edit: missing file", details: { change } } };
+  }
+  if (typeof change.search !== "string" || typeof change.replace !== "string") {
+    return { ok: false, error: { kind: "invalid_change", file: change.file, message: "Invalid edit: search/replace must be strings", details: null } };
+  }
+
+  const { resolved, error } = resolvePath(fsTools, workspaceDir, change.file);
+  if (error) return { ok: false, error };
+  const { abs, safeRel } = resolved;
+
+  const existing = await fs.readFile(abs, "utf8").catch((err) => {
+    if (err && err.code === "ENOENT") return "";
+    throw err;
+  });
+
+  let nextContent;
+  const isEmptySearch = change.search === "" || EMPTY_SEARCH_PATTERNS.includes(change.search);
+  if (isEmptySearch) {
+    nextContent = change.replace;
+  } else {
+    const occurrences = countOccurrences(existing, change.search);
+    if (occurrences !== 1) {
+      const previewMax = 200;
+      const rawPreview = change.search.length > previewMax
+        ? change.search.slice(0, previewMax) + "\n...(truncated)"
+        : change.search;
+      const searchAnchors = change.search
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+        .map((l) => (l.length > 200 ? l.slice(0, 200) : l));
+      return {
+        ok: false,
+        error: {
+          kind: "search_not_unique",
+          file: safeRel,
+          message: `SEARCH must match exactly once (got ${occurrences})`,
+          details: { occurrences, search_preview: rawPreview, search_len: change.search.length, search_anchors: searchAnchors }
+        }
+      };
+    }
+    nextContent = existing.replace(change.search, change.replace);
+  }
+
+  await fsTools.updateFile(workspaceDir, safeRel, nextContent);
+  return { ok: true, appliedFile: safeRel };
+}
+
+async function handleMkdir(change, workspaceDir, fsTools) {
+  if (typeof change.path !== "string") {
+    return { ok: false, error: { kind: "invalid_mkdir", file: null, message: "Invalid MKDIR: missing path", details: { change } } };
+  }
+
+  const { resolved, error } = resolvePath(fsTools, workspaceDir, change.path);
+  if (error) return { ok: false, error };
+  await fs.mkdir(resolved.abs, { recursive: true });
+  return { ok: true, appliedFile: null }; // directories not tracked by git
+}
+
+async function handleRm(change, workspaceDir, fsTools) {
+  if (typeof change.path !== "string") {
+    return { ok: false, error: { kind: "invalid_rm", file: null, message: "Invalid RM: missing path", details: { change } } };
+  }
+
+  const { resolved, error } = resolvePath(fsTools, workspaceDir, change.path);
+  if (error) return { ok: false, error };
+
+  try {
+    const stat = await fs.stat(resolved.abs);
+    if (stat.isFile()) {
+      await fs.unlink(resolved.abs);
+      return { ok: true, appliedFile: resolved.safeRel };
+    } else if (stat.isDirectory()) {
+      await fs.rm(resolved.abs, { recursive: true, force: true });
+    }
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e;
+  }
+  return { ok: true, appliedFile: null };
+}
+
+async function handleMv(change, workspaceDir, fsTools) {
+  if (typeof change.from !== "string" || typeof change.to !== "string") {
+    return { ok: false, error: { kind: "invalid_mv", file: null, message: "Invalid MV: missing from/to", details: { change } } };
+  }
+
+  const fromResolved = resolvePath(fsTools, workspaceDir, change.from);
+  if (fromResolved.error) return { ok: false, error: fromResolved.error };
+
+  const toResolved = resolvePath(fsTools, workspaceDir, change.to);
+  if (toResolved.error) return { ok: false, error: toResolved.error };
+
+  try {
+    await fs.access(fromResolved.resolved.abs);
+  } catch {
+    return { ok: false, error: { kind: "source_missing", file: fromResolved.resolved.safeRel, message: `Source file does not exist: ${fromResolved.resolved.safeRel}` } };
+  }
+
+  await fs.mkdir(path.dirname(toResolved.resolved.abs), { recursive: true });
+  await fs.rename(fromResolved.resolved.abs, toResolved.resolved.abs);
+  return { ok: true, appliedFile: toResolved.resolved.safeRel };
+}
+
+async function handleTouch(change, workspaceDir, fsTools) {
+  if (typeof change.path !== "string") {
+    return { ok: false, error: { kind: "invalid_touch", file: null, message: "Invalid TOUCH: missing path", details: { change } } };
+  }
+
+  const { resolved, error } = resolvePath(fsTools, workspaceDir, change.path);
+  if (error) return { ok: false, error };
+
+  await fs.mkdir(path.dirname(resolved.abs), { recursive: true });
+  const date = new Date();
+  await fs.utimes(resolved.abs, date, date).catch(async (e) => {
+    if (e.code === "ENOENT") {
+      await fs.writeFile(resolved.abs, "");
+    } else {
+      throw e;
+    }
+  });
+  return { ok: true, appliedFile: resolved.safeRel };
+}
+
+const CHANGE_HANDLERS = {
+  edit: handleEdit,
+  mkdir: handleMkdir,
+  rm: handleRm,
+  mv: handleMv,
+  touch: handleTouch
+};
+
 async function applySearchReplaceChanges(workspaceDir, changes, fsTools) {
   if (!Array.isArray(changes) || changes.length === 0) {
     throw new Error("No changes to apply");
@@ -110,7 +256,8 @@ async function applySearchReplaceChanges(workspaceDir, changes, fsTools) {
     });
 
     let nextContent;
-    if (change.search === "") {
+    const isEmptySearch = change.search === "" || EMPTY_SEARCH_PATTERNS.includes(change.search);
+    if (isEmptySearch) {
       nextContent = change.replace;
     } else {
       const occurrences = countOccurrences(existing, change.search);
@@ -137,257 +284,30 @@ async function safeApplyPatch(workspaceDir, changes, fsTools) {
     }
 
     const appliedFiles = [];
-    for (let changeIndex = 0; changeIndex < changes.length; changeIndex += 1) {
-      const change = changes[changeIndex];
+    for (const change of changes) {
       if (!change || !change.type) {
         return {
           ok: false,
           appliedFiles,
-          error: {
-            kind: "invalid_change",
-            file: null,
-            message: "Invalid change: missing type",
-            details: { change }
-          }
+          error: { kind: "invalid_change", file: null, message: "Invalid change: missing type", details: { change } }
         };
       }
 
-      // Handle different operation types
-      if (change.type === 'edit') {
-        // Original SEARCH/REPLACE edit operation
-        if (typeof change.file !== "string") {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "invalid_change",
-              file: null,
-              message: "Invalid edit: missing file",
-              details: { change }
-            }
-          };
-        }
-        if (typeof change.search !== "string" || typeof change.replace !== "string") {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "invalid_change",
-              file: change.file,
-              message: "Invalid edit: search/replace must be strings",
-              details: null
-            }
-          };
-        }
-
-        let resolved;
-        try {
-          resolved = fsTools.resolveInWorkspace(workspaceDir, change.file);
-        } catch (e) {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "unsafe_path",
-              file: change.file,
-              message: e.message,
-              details: null
-            }
-          };
-        }
-
-        const existing = await fs.readFile(resolved.abs, "utf8").catch((err) => {
-          if (err && err.code === "ENOENT") return "";
-          throw err;
-        });
-
-        let nextContent;
-        if (change.search === "") {
-          nextContent = change.replace;
-        } else {
-          const occurrences = countOccurrences(existing, change.search);
-          if (occurrences !== 1) {
-            const previewMax = 200;
-            const rawPreview = change.search.length > previewMax
-              ? change.search.slice(0, previewMax) + "\n...(truncated)"
-              : change.search;
-            const searchAnchors = change.search
-              .split(/\r?\n/)
-              .map((l) => l.trim())
-              .filter(Boolean)
-              .slice(0, 3)
-              .map((l) => (l.length > 200 ? l.slice(0, 200) : l));
-            return {
-              ok: false,
-              appliedFiles,
-              error: {
-                kind: "search_not_unique",
-                file: resolved.safeRel,
-                message: `SEARCH must match exactly once (got ${occurrences})`,
-                details: {
-                  occurrences,
-                  search_preview: rawPreview,
-                  search_len: change.search.length,
-                  change_index: changeIndex,
-                  search_anchors: searchAnchors
-                }
-              }
-            };
-          }
-          nextContent = existing.replace(change.search, change.replace);
-        }
-
-        await fsTools.updateFile(workspaceDir, resolved.safeRel, nextContent);
-        appliedFiles.push(resolved.safeRel);
-      } else if (change.type === 'mkdir') {
-        // Create directory operation
-        if (typeof change.path !== "string") {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "invalid_mkdir",
-              file: null,
-              message: "Invalid MKDIR: missing path",
-              details: { change }
-            }
-          };
-        }
-
-        let resolved;
-        try {
-          resolved = fsTools.resolveInWorkspace(workspaceDir, change.path);
-        } catch (e) {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "unsafe_path",
-              file: change.path,
-              message: e.message,
-              details: null
-            }
-          };
-        }
-
-        // Recursively create directory
-        await fs.mkdir(resolved.abs, { recursive: true });
-        // We don't add directories to appliedFiles since git tracks files not directories
-      } else if (change.type === 'rm') {
-        // Remove file operation
-        if (typeof change.path !== "string") {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "invalid_rm",
-              file: null,
-              message: "Invalid RM: missing path",
-              details: { change }
-            }
-          };
-        }
-
-        let resolved;
-        try {
-          resolved = fsTools.resolveInWorkspace(workspaceDir, change.path);
-        } catch (e) {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "unsafe_path",
-              file: change.path,
-              message: e.message,
-              details: null
-            }
-          };
-        }
-
-        // Check if it exists
-        try {
-          const stat = await fs.stat(resolved.abs);
-          if (stat.isFile()) {
-            await fs.unlink(resolved.abs);
-            appliedFiles.push(resolved.safeRel);
-          } else if (stat.isDirectory()) {
-            // Remove directory recursively
-            // For simplicity, we just do rm -r
-            await fs.rm(resolved.abs, { recursive: true, force: true });
-          }
-        } catch (e) {
-          if (e.code !== 'ENOENT') {
-            throw e;
-          }
-          // If it doesn't exist, just ignore - it's already gone
-        }
-      } else if (change.type === 'mv') {
-        // Move/rename file operation
-        if (typeof change.from !== "string" || typeof change.to !== "string") {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "invalid_mv",
-              file: null,
-              message: "Invalid MV: missing from/to",
-              details: { change }
-            }
-          };
-        }
-
-        let fromResolved, toResolved;
-        try {
-          fromResolved = fsTools.resolveInWorkspace(workspaceDir, change.from);
-          toResolved = fsTools.resolveInWorkspace(workspaceDir, change.to);
-        } catch (e) {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "unsafe_path",
-              file: e.message,
-              message: e.message,
-              details: null
-            }
-          };
-        }
-
-        // Check source exists
-        try {
-          await fs.access(fromResolved.abs);
-        } catch (e) {
-          return {
-            ok: false,
-            appliedFiles,
-            error: {
-              kind: "source_missing",
-              file: fromResolved.safeRel,
-              message: `Source file does not exist: ${fromResolved.safeRel}`,
-              details: null
-            }
-          };
-        }
-
-        // Ensure parent directory of target exists
-        await fs.mkdir(path.dirname(toResolved.abs), { recursive: true });
-
-        // Move the file
-        await fs.rename(fromResolved.abs, toResolved.abs);
-
-        // Add target to appliedFiles, source is removed so not needed
-        appliedFiles.push(toResolved.safeRel);
-      } else {
+      const handler = CHANGE_HANDLERS[change.type];
+      if (!handler) {
         return {
           ok: false,
           appliedFiles,
-          error: {
-            kind: "unknown_type",
-            file: null,
-            message: `Unknown change type: ${change.type}`,
-            details: { change }
-          }
+          error: { kind: "unknown_type", file: null, message: `Unknown change type: ${change.type}`, details: { change } }
         };
+      }
+
+      const result = await handler(change, workspaceDir, fsTools);
+      if (!result.ok) {
+        return { ok: false, appliedFiles, error: result.error };
+      }
+      if (result.appliedFile) {
+        appliedFiles.push(result.appliedFile);
       }
     }
 
@@ -396,12 +316,7 @@ async function safeApplyPatch(workspaceDir, changes, fsTools) {
     return {
       ok: false,
       appliedFiles: [],
-      error: {
-        kind: "io_error",
-        file: null,
-        message: e?.message ?? String(e),
-        details: null
-      }
+      error: { kind: "io_error", file: null, message: e?.message ?? String(e), details: null }
     };
   }
 }

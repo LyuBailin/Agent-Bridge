@@ -1,0 +1,10 @@
+```sr
+FILE: backend/.env
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+JWT_SECRET=your-secret-key-here
+>>>
+```

@@ -1,0 +1,16 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"frontend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"frontend/index.html\",\"search\":\"\",\"replace\":\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n    <meta charset=\\\"UTF-8\\\">\\n    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n    <title>Phase 1 Project</title>\\n</head>\\n<body>\\n    <h1>Welcome to Phase 1 Project</h1>\\n</body>\\n</html>\"}"
+      }
+    }
+  ]
+}

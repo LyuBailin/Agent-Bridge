@@ -94,7 +94,8 @@ const ALLOWED_OPERATIONS = {
   search_replace: true,
   mkdir: true,
   mv: true,
-  rm: true
+  rm: true,
+  touch: true
 };
 
 const DENIED_OPERATIONS = {
@@ -117,7 +118,7 @@ function validateOperation(name) {
     );
   }
   if (!ALLOWED_OPERATIONS[name]) {
-    throw new Error(`Unknown operation: '${name}'. Allowed: search_replace, mkdir, mv, rm.`);
+    throw new Error(`Unknown operation: '${name}'. Allowed: search_replace, mkdir, mv, rm, touch.`);
   }
 }
 
@@ -133,6 +134,8 @@ function getPathFieldsFromArgs(name, args) {
     case "mv":
       return [args.from, args.to];
     case "rm":
+      return [args.path];
+    case "touch":
       return [args.path];
     default:
       return [];

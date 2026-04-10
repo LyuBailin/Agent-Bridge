@@ -1,0 +1,15 @@
+```sr
+FILE: frontend/src/components/Logout.js
+SEARCH:
+<<<
+// Add logic to clear token and redirect
+>>>
+REPLACE:
+<<<
+// Clear the token from localStorage
+localStorage.removeItem('token');
+
+// Redirect to the home page
+window.location.href = '/';
+>>>
+```

@@ -1,0 +1,60 @@
+```sr
+FILE: backend/routes/users.js
+SEARCH:
+<<<
+// No existing content to search for, create a new file.
+>>>
+REPLACE:
+<<<
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User'); // Assuming the User model is in ../models/User
+
+// Middleware to check authentication (assuming it's defined elsewhere)
+const authMiddleware = require('../middleware/auth');
+
+// GET /:id endpoint to fetch user by id
+router.get('/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId).select('-password'); // Exclude password field
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /:id endpoint to update user data
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { name, email } = req.body;
+
+    // Validate input if necessary
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, email },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+module.exports = router;
+>>>
+```

@@ -1,6 +1,0 @@
-```op
-MKDIR: backend/config
-MKDIR: backend/tests
-MKDIR: frontend
-MKDIR: tasks
-```
