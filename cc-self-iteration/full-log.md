@@ -27,3 +27,25 @@
 ### 提交
 - `b27f1a6`: checkpoint iteration-1: extract constants, refactor safeApplyPatch, extract handleApplyFailure
 - Iteration 1 completed: all 5 tasks done
+
+## 迭代 2 (2026-04-10)
+
+### 审查发现
+- 问题数量: 5 个 (2 高优先级, 2 中优先级, 1 低优先级)
+- 主要问题: planner.js JSON.parse(JSON.stringify()) 效率问题, adapter/index.js mock 调用重复
+
+### 执行任务
+- Task 1: 替换 JSON.parse(JSON.stringify()) 为 structuredClone ✓
+- Task 2: 提取 mock fallback helper ✓
+- Task 3: 提取 executeSubtaskAttempt (延后，高风险)
+
+### 测试结果
+- npm test: 401 tests passed, 0 failed
+- 语法检查: 全部通过
+
+### 修改文件
+- `src/core/planner.js` (6 处 structuredClone 替换)
+- `src/core/adapter/index.js` (添加 withMockTextFallback, withMockJsonFallback helper)
+
+### 提交
+- `30e91df`: checkpoint iteration-2: task1-2 complete (structuredClone, mock helper)
