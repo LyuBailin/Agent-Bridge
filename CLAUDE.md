@@ -28,7 +28,7 @@ Agent Bridge is a hybrid AI code generation system that automatically converts n
 
 - **src/core/polling.js** - Task polling loop. `pollLoop(env, deps)` polls `tasks/task.json` and calls `executeWorkflow` when a task is queued. `parseArgs(argv)` handles `--once` and `--root` flags.
 
-- **src/core/workflow.js** - Orchestration logic. `executeWorkflow` drives the full pipeline: planning → model execution → verification → git checkpointing → final squash commit. `orchestrateTask` / `orchestrateLongTask` handle single and DAG-based subtask execution.
+- **src/core/workflow.js** - Orchestration logic. `executeWorkflow` drives the full pipeline: planning → model execution → verification → git checkpointing → final squash commit. `orchestrateTask` / `orchestrateLongTask` handle single and DAG-based subtask execution. Exports helper functions: `handleApplyFailure`, `buildSubtaskContext`, `handleFailure`, `collectGitSummary`, `logOllamaAction`, `logClaudeWorkflow`.
 
 - **src/core/planner.js** - Task analysis and DAG planning. Key responsibilities:
   - Task difficulty assessment (scores 0-100)
@@ -36,7 +36,7 @@ Agent Bridge is a hybrid AI code generation system that automatically converts n
   - State management and replanning from failures
   - Validation of plan tree structure
 
-- **src/core/adapter/index.js** - Multi-model adapter facade. Wires together validator, parser, schema, and providers. Exports `createProvider` (builds Ollama/OpenAI/Claude CLI providers), `callCodex` (legacy OpenAI Responses API), `buildPrompt`, `buildCorrectionPrompt`, and re-exports validators/parsers.
+- **src/core/adapter/index.js** - Multi-model adapter facade. Wires together validator, parser, schema, and providers. Exports `createProvider` (factory dispatcher), `createOllamaProvider`, `createOpenAIProvider`, `createClaudeCliProvider`, `callCodex` (legacy OpenAI Responses API), `buildPrompt`, `buildCorrectionPrompt`, and re-exports validators/parsers.
 
 - **src/core/adapter/validator.js** - Operation validation:
   - `detectOperationType` — distinguishes sr-only vs fileops vs mixed
@@ -66,13 +66,15 @@ Agent Bridge is a hybrid AI code generation system that automatically converts n
   - Automatic repository initialization
   - Checkpoint commits per subtask (supports rollback on failure)
   - Squash and merge all checkpoints into a single final commit
-  - SEARCH/REPLACE based patch application
+  - SEARCH/REPLACE based patch application via strategy pattern (`handleEdit`, `handleMkdir`, `handleRm`, `handleMv`, `handleTouch`)
 
 - **src/core/index.js** - Barrel re-exporting all public core APIs: `main`, `adapter`, `planner`, `gitManager`, `verifier`, `fsTools`, `snippetFeedback`, `polling`, `workflow`, `adapterProviders`. Also re-exports `ALLOWED_OPERATIONS` and `DENIED_OPERATIONS` from validator.
 
 - **src/shared/time.js** - `nowIso()` — returns current Beijing time in ISO format.
 
 - **src/shared/path.js** - `toPosixPath`, `assertSafeRelPath` — shared path utilities (used to live in `fs_tools.js`).
+
+- **src/shared/constants.js** - `EMPTY_SEARCH_PATTERNS` — shared constants for SEARCH/REPLACE empty search detection.
 
 - **src/utils/snippet_feedback.js** - Code snippet feedback for SEARCH/REPLACE failures:
   - Extracts surrounding context when patch application fails
