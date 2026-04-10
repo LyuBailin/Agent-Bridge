@@ -513,7 +513,7 @@ async function orchestrateLongTask(env, task) {
         generatorProviderType = phase3Enabled && subtaskDifficulty === "high" ? "claude_cli" : providerType;
         const currentGeneratorProvider = generatorProviderType === "claude_cli" ? claudeProvider : generatorProvider;
 
-        semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty !== "low");
+        semanticVerifyEnabled = Boolean(phase3Enabled && subtaskDifficulty === "high");
 
         const optimizedContext = await buildSubtaskContext(
           env,
