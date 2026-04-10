@@ -49,3 +49,26 @@
 
 ### 提交
 - `30e91df`: checkpoint iteration-2: task1-2 complete (structuredClone, mock helper)
+
+## 迭代 3 (2026-04-10)
+
+### 审查发现
+- Bug发现: 执行 phase-4-data-visualization-v4.0 时，语义验证器导致无限 replan 循环
+- 根因: semanticVerify 只传 git diff，不传实际文件内容；"strict code reviewer" 将"无法验证"误判为 blocking
+
+### 执行任务
+- Task 1: verifier 传递文件内容到 semanticVerify ✓
+- Task 2: 放松 blocking 条件 ✓
+- Task 3: 验证修复 ✓
+
+### 测试结果
+- npm test: 401 tests passed, 0 failed
+- 语法检查: 全部通过
+
+### 修改文件
+- `src/core/verifier.js` (传递实际文件内容，放松 blocking 条件)
+- `src/core/workflow.js` (调用 semanticVerify 时传递 changed_files)
+
+### 提交
+- `42adc72`: checkpoint iteration-3: fix semantic verifier infinite replan bug (pass file contents, relax blocking)
+
