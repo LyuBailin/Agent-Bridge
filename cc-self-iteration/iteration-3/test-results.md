@@ -23,3 +23,8 @@
 ### Task 3: 验证修复
 - npm test: 401 tests passed
 - 语义修改：reviewer 现在能看到实际文件内容，不再因为"缺少文件内容"而误判
+
+### BUG-002 Fix: schema echo 检测
+- 在 `callClaudeCliJson` 中添加 schema echo 检测
+- 当解析结果看起来像 schema 定义时，fall through 到文本处理
+- npm test: 401 tests passed

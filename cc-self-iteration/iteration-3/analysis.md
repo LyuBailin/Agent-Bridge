@@ -32,4 +32,29 @@ task phase-4-data-visualization-v4.0:r2_r1_s1: max replans (5) exceeded, marking
   - 修改系统提示词，放松 blocking 标准
 
 ### 文件: src/core/workflow.js
-- **修改**: 调用 semanticVerify 时传递 `{ changed_files: applyResult?.appliedFiles ?? [] }`
+- **修改 1**: 调用 semanticVerify 时传递 `{ changed_files: applyResult?.appliedFiles ?? [] }`
+
+## Bug 分析
+
+### BUG-002: Claude CLI JSON Schema 与 --output-format json 不兼容
+
+**发现场景**: semanticVerify 调用 Claude CLI 时，模型返回 schema 定义而非实际数据
+
+**错误日志**:
+```
+Raw response: {"type":"result","subtype":"success",...,"result":"{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"ok\",\"iss...
+"}
+```
+
+**根因分析**:
+1. `callClaudeCliJson` 使用 `--output-format json` 和 JSON Schema 指令
+2. 模型收到 schema 后，将其作为文本返回，而非用它来结构化响应
+3. 导致 `ensureReviewShape` 失败：返回的 schema 定义本身而非 `{"ok":true,"issues":[]}`
+
+**修复**:
+- 在 `callClaudeCliJson` 中检测 schema echo：如果解析结果有 `type` 和 `properties` 但没有 `ok`，则认为是 schema 定义，fall through 到文本处理逻辑
+
+### 文件: src/core/adapter/providers/claude_cli.js
+- **修改**: 在 `callClaudeCliJson` 中添加 schema echo 检测
+  - 如果解析结果看起来像 schema 定义（`type` + `properties` 但没有 `ok`），抛出错误触发文本处理
+  - 让文本处理逻辑尝试从 markdown code block 中提取 JSON
