@@ -332,13 +332,36 @@ async function orchestrateLongTask(env, task) {
   const startedAt = nowIso();
   await env._appendLog(env.logPath, `task ${task.task_id} start`);
 
+  // Race condition fix: check task.json status FIRST to detect if another instance
+  // already claimed this task. Only proceed if status is "queued".
+  const currentTask = await env._safeReadJson(env.taskPath, {});
+  if (currentTask?.status !== "queued") {
+    // Task is not queued - either already running, done, or failed
+    await env._appendLog(env.logPath, `task ${task.task_id} skipped (status=${currentTask?.status})`);
+    return { ok: true, skipped: true };
+  }
+
+  // Atomically claim the task by setting status to "running"
+  // If another instance races to set it first, we'll detect it below
+  await env._markTask(env.taskPath, { status: "running", started_at: startedAt });
+
+  // Double-check: re-read task.json to ensure we still own it
+  // (another instance might have set it to "running" between our first read and our markTask)
+  const recheckTask = await env._safeReadJson(env.taskPath, {});
+  if (recheckTask?.status !== "running" || recheckTask?.started_at !== startedAt) {
+    // Another instance beat us to it
+    await env._appendLog(env.logPath, `task ${task.task_id} skipped (lost race to another instance)`);
+    return { ok: true, skipped: true };
+  }
+
+  // Now safe to check memoryPath for previously completed tasks (in case of restart)
   const alreadyProcessed = await env._safeReadJson(env.memoryPath, { processed: {} }).then(
     (m) => Boolean(m?.processed && m.processed[task.task_id])
   );
 
   if (alreadyProcessed) {
     const finishedAt = nowIso();
-    await env._appendLog(env.logPath, `task ${task.task_id} skipped (duplicate)`);
+    await env._appendLog(env.logPath, `task ${task.task_id} skipped (duplicate from memory)`);
     await env._writeResult(env.tasksDir, {
       task_id: task.task_id,
       ok: true,
@@ -365,8 +388,6 @@ async function orchestrateLongTask(env, task) {
     await env._markTask(env.taskPath, { status: "done" });
     return { ok: true, skipped: true };
   }
-
-  await env._markTask(env.taskPath, { status: "running", started_at: startedAt });
 
   const taskBaseSha = await gitManager.getHeadSha(env.workspaceDir);
   const errors = [];
