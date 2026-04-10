@@ -622,7 +622,7 @@ function updatePlanState(planTree, subtaskId, patch) {
   const id = String(subtaskId ?? "").trim();
   if (!id || !tree.nodes[id]) throw new Error(`Unknown subtaskId: ${id}`);
 
-  const next = JSON.parse(JSON.stringify(tree));
+  const next = structuredClone(tree);
   const node = next.nodes[id];
   const p = isPlainObject(patch) ? patch : {};
 
@@ -706,7 +706,7 @@ async function replanFromFailure({
   const tree = validatePlanTree(planTree);
   const maxReplans = Number.isFinite(tree.limits?.max_replans) ? tree.limits.max_replans : 2;
   if ((tree.replans ?? 0) >= maxReplans) {
-    const next = JSON.parse(JSON.stringify(tree));
+    const next = structuredClone(tree);
     next.replans = (next.replans ?? 0) + 1;
     next.updated_at = nowIso();
     return next;
@@ -714,7 +714,7 @@ async function replanFromFailure({
 
   const failedId = typeof failedSubtask === "string" ? failedSubtask : String(failedSubtask?.id ?? "");
   if (!failedId || !tree.nodes[failedId]) {
-    const next = JSON.parse(JSON.stringify(tree));
+    const next = structuredClone(tree);
     next.replans = (next.replans ?? 0) + 1;
     next.updated_at = nowIso();
     return next;
@@ -752,7 +752,7 @@ async function replanFromFailure({
   }
 
   if (!claudeProvider || typeof claudeProvider.generateJson !== "function") {
-    const next = JSON.parse(JSON.stringify(tree));
+    const next = structuredClone(tree);
     next.replans = (next.replans ?? 0) + 1;
     next.updated_at = nowIso();
     // mark rewrite region as failed so orchestrator can abort deterministically
@@ -782,7 +782,7 @@ async function replanFromFailure({
     }
   }
 
-  const next = JSON.parse(JSON.stringify(tree));
+  const next = structuredClone(tree);
   next.replans = (next.replans ?? 0) + 1;
   next.updated_at = nowIso();
   next.nodes[failedId].errors = next.nodes[failedId].errors.concat([
@@ -797,7 +797,7 @@ async function replanFromFailure({
 }
 
 function mergeReplannedTree(oldTree, partialNew, doneIds, rewriteSet) {
-  const next = JSON.parse(JSON.stringify(oldTree));
+  const next = structuredClone(oldTree);
   const oldIds = new Set(Object.keys(next.nodes));
   const rewrite = rewriteSet instanceof Set ? rewriteSet : new Set();
 

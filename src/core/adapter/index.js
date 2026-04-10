@@ -22,6 +22,40 @@ const {
 // Re-export parsers
 const { extractResponseText, parseResponse, parseToolCalls, parseStructuredTextToToolCalls } = parser;
 
+/**
+ * Executes an async function with mock fallback for text responses.
+ * Checks mock first; if present, returns mock text without calling the actual function.
+ * @param {Object} mockConfig - { singleVar, listVar, listIdxVar }
+ * @param {Function} actualFn - Async function to call if no mock
+ * @returns {Promise<string|null>} Mock text or result of actualFn
+ */
+async function withMockTextFallback(mockConfig, actualFn) {
+  const mock = await readMockTextFromEnv(mockConfig);
+  if (mock !== null) return mock;
+  return actualFn();
+}
+
+/**
+ * Executes an async function with mock fallback for JSON responses.
+ * Checks mock first; if present, parses and returns mock JSON without calling the actual function.
+ * @param {Object} mockConfig - { singleVar, listVar, listIdxVar }
+ * @param {Function} actualFn - Async function to call if no mock
+ * @returns {Promise<object>} Parsed mock JSON or result of actualFn
+ */
+async function withMockJsonFallback(mockConfig, actualFn) {
+  const mock = await readMockTextFromEnv(mockConfig);
+  if (mock !== null) {
+    try {
+      return JSON.parse(String(mock));
+    } catch (e) {
+      const err = new Error(`Failed to parse mock review JSON: ${e.message}`);
+      err.cause = e;
+      throw err;
+    }
+  }
+  return actualFn();
+}
+
 function formatErrorPrompt(originalPrompt, errorContext) {
   const errText =
     typeof errorContext === "string"
@@ -101,27 +135,27 @@ function createOllamaProvider(config = {}) {
   const useFunctionCalling = config?.useFunctionCalling ?? false;
   const ollamaCfg = config?.ollama ?? {};
   const functionCallingCfg = config?.functionCalling ?? {};
+  const mockConfig = {
+    singleVar: SIMULATION_ENV.RESPONSE_FILE,
+    listVar: SIMULATION_ENV.RESPONSE_FILES,
+    listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
+  };
 
   return {
     type: "ollama",
     supportsFunctionCalling: true,
     async generateCode(prompt) {
-      const mock = await readMockTextFromEnv({
-        singleVar: SIMULATION_ENV.RESPONSE_FILE,
-        listVar: SIMULATION_ENV.RESPONSE_FILES,
-        listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
-      });
-      if (mock !== null) return mock;
-
-      return callOllama(
-        prompt,
-        {
-          model: ollamaCfg?.model ?? "qwen-2.5-coder:14b",
-          base_url: ollamaCfg?.base_url ?? "http://localhost:11434",
-          temperature: ollamaCfg?.temperature,
-          allowFallback: functionCallingCfg?.allowFallback ?? false
-        },
-        useFunctionCalling
+      return withMockTextFallback(mockConfig, () =>
+        callOllama(
+          prompt,
+          {
+            model: ollamaCfg?.model ?? "qwen-2.5-coder:14b",
+            base_url: ollamaCfg?.base_url ?? "http://localhost:11434",
+            temperature: ollamaCfg?.temperature,
+            allowFallback: functionCallingCfg?.allowFallback ?? false
+          },
+          useFunctionCalling
+        )
       );
     }
   };
@@ -130,27 +164,27 @@ function createOllamaProvider(config = {}) {
 function createOpenAIProvider(config = {}) {
   const useFunctionCalling = config?.useFunctionCalling ?? false;
   const openaiCfg = config?.openai ?? {};
+  const mockConfig = {
+    singleVar: SIMULATION_ENV.RESPONSE_FILE,
+    listVar: SIMULATION_ENV.RESPONSE_FILES,
+    listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
+  };
 
   return {
     type: "openai",
     supportsFunctionCalling: true,
     async generateCode(prompt) {
-      const mock = await readMockTextFromEnv({
-        singleVar: SIMULATION_ENV.RESPONSE_FILE,
-        listVar: SIMULATION_ENV.RESPONSE_FILES,
-        listIdxVar: SIMULATION_ENV.RESPONSE_FILES_IDX
-      });
-      if (mock !== null) return mock;
-
-      return callOpenAI(
-        prompt,
-        {
-          model: openaiCfg?.model ?? "gpt-3.5-turbo",
-          base_url: openaiCfg?.base_url ?? "https://api.openai.com/v1",
-          api_key: openaiCfg?.openai_api_key ?? process.env[openaiCfg?.api_key_env ?? "OPENAI_API_KEY"],
-          temperature: openaiCfg?.temperature
-        },
-        useFunctionCalling
+      return withMockTextFallback(mockConfig, () =>
+        callOpenAI(
+          prompt,
+          {
+            model: openaiCfg?.model ?? "gpt-3.5-turbo",
+            base_url: openaiCfg?.base_url ?? "https://api.openai.com/v1",
+            api_key: openaiCfg?.openai_api_key ?? process.env[openaiCfg?.api_key_env ?? "OPENAI_API_KEY"],
+            temperature: openaiCfg?.temperature
+          },
+          useFunctionCalling
+        )
       );
     }
   };
@@ -218,23 +252,14 @@ function createClaudeCliProvider(config = {}) {
       }
     },
     async generateJson({ system, user, schema, timeout_ms }) {
-      const mock = await readMockTextFromEnv({
+      const mockConfig = {
         singleVar: SIMULATION_ENV.REVIEW_RESPONSE_FILE,
         listVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES,
         listIdxVar: SIMULATION_ENV.REVIEW_RESPONSE_FILES_IDX
-      });
-      if (mock !== null) {
-        let json;
-        try {
-          json = JSON.parse(String(mock));
-        } catch (e) {
-          const err = new Error(`Failed to parse mock review JSON: ${e.message}`);
-          err.cause = e;
-          throw err;
-        }
-        return json;
-      }
-      return callClaudeCliJson(anthropicCfg, { system, user, jsonSchema: schema, timeout_ms });
+      };
+      return withMockJsonFallback(mockConfig, () =>
+        callClaudeCliJson(anthropicCfg, { system, user, jsonSchema: schema, timeout_ms })
+      );
     }
   };
 }
