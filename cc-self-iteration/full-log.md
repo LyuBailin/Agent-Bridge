@@ -187,3 +187,25 @@
 ### 提交
 - `72d05ee`: iteration-10: fix regex to use \n>>>(?=\n|$) for proper end marker detection
 
+## 迭代 11 (2026-04-12)
+
+### 目标
+将 sr/op 块解析切换为 JSON Schema 验证，提高可靠性
+
+### 执行任务
+- Task 1: 设计 JSON Schema 验证函数 ✓
+- Task 2: 实现 parseJsonToolCalls ✓
+- Task 3: 集成到 parseStructuredTextToToolCalls ✓
+- Task 4: 添加单元测试 ✓
+
+### 测试结果
+- npm test: 408 tests passed, 0 failed ✓
+- 新增测试: 7 个
+
+### 修改文件
+- `src/core/adapter/parser.js` (新增 parseJsonToolCalls，修改 parseStructuredTextToToolCalls 为 JSON-first)
+- `test/unit/adapter/parser.test.js` (新增 7 个测试用例)
+
+### 提交
+- `6e056a6`: checkpoint iteration-11: add JSON Schema validation support
+
