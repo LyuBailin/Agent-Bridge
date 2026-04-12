@@ -280,3 +280,18 @@ HINT: The file currently contains:
     - search_replace (backend/tests/auth.test.js)
   Result: success
 
+[2026-04-12 20:50:44.627] [iteration-9-test-1] [s1]
+  Provider: qwen2.5-coder:14b
+  Result: failure
+  Error: sr block missing REPLACE for README.md
+
+[2026-04-12 20:52:00.337] [iteration-9-test-1] [r1_s1]
+  Provider: qwen2.5-coder:14b
+  Result: failure
+  Error: sr block missing REPLACE for README.md
+
+[2026-04-12 20:53:14.225] [iteration-9-test-1] [r2_r1_s1]
+  Provider: qwen2.5-coder:14b
+  Result: failure
+  Error: sr block missing REPLACE for README.md
+

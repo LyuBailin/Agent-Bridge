@@ -29,9 +29,14 @@ function parseSrBlock(blockText) {
   if (!fileMatch) throw new Error("sr block missing FILE:");
   const file = fileMatch[1].trim();
 
-  const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\s*([\s\S]*?)\s*>>>\s*/m);
-  const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\s*([\s\S]*?)\s*>>>\s*/m);
-  if (!replaceMatch) throw new Error(`sr block missing REPLACE for ${file}`);
+  // Use \n>>> to ensure end marker is on its own line, preventing content with >>> from being mistaken
+  const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\n([\s\S]*?)\n>>>\s*/m);
+  const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\n([\s\S]*?)\n>>>\s*/m);
+  if (!replaceMatch) {
+    // Provide helpful error with context
+    const preview = blockText.substring(0, 200).replace(/\n/g, '\\n');
+    throw new Error(`sr block missing REPLACE for ${file}. Block preview: "${preview}"`);
+  }
 
   let search = searchMatch ? searchMatch[1] : "";
   if (search.trim() !== "" && EMPTY_SEARCH_PATTERNS.includes(search.trim())) {
