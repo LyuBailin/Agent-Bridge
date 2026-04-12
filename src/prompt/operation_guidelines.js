@@ -58,7 +58,8 @@ function buildOperationGuidelines() {
     "- DO NOT use SEARCH/REPLACE to delete files - use RM instead",
     "- DO NOT manually copy content then delete original - use MV",
     "- When updating require/import paths, use paths relative to the file being edited",
-    "- Output ONLY the blocks - no extra text, explanations, or separators"
+    "- Output ONLY the blocks - no extra text, explanations, or separators",
+    "- IMPORTANT: sr block content must NOT contain >>> anywhere - use --- instead of >>> for separators"
   ].join("\n");
 }
 
