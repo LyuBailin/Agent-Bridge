@@ -164,3 +164,26 @@
 - `a7b2ad0`: checkpoint iteration-9: fix sr block regex to use \n>>> marker
 - `3a19de0`: checkpoint iteration-9: add >>> prohibition in sr block content
 
+## 迭代 10 (2026-04-12)
+
+### 问题发现
+- 迭代 9 的正则修复 `\n>>>` 有缺陷：它会错误匹配 `>>> text` 中前面有换行的 `>>>`
+- 例如：`>>> This is another line.` 中的 `>>>` 前面有 `\n`，会被误识别为结束标记
+
+### 根因分析
+- `\n>>>` 只要求前面有 `\n`，不验证后面
+- 正确的结束标记应该是 `>>>` 独占一行（前面是 `\n`，后面是 `\n` 或文件结束）
+
+### 修复方案
+- 正则改为 `\n>>>(?=\n|$)`：使用前瞻断言验证后面是 `\n` 或文件结束
+- 这确保只有独占一行的 `>>>` 才是结束标记
+
+### 测试验证
+- npm test: 401 tests passed, 0 failed ✓
+
+### 修改文件
+- `src/core/adapter/parser.js` (正则改为 `\n>>>(?=\n|$)`)
+
+### 提交
+- `72d05ee`: iteration-10: fix regex to use \n>>>(?=\n|$) for proper end marker detection
+

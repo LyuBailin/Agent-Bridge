@@ -4,6 +4,77 @@ const { executePreHooks, executePostHooks } = require("./hooks");
 const { classifyBatchRisk, RISK_LEVELS } = require("../risk_classifier");
 const { EMPTY_SEARCH_PATTERNS } = require("../../shared/constants");
 
+// Allowed tool names from TOOLS_SCHEMA
+const ALLOWED_TOOL_NAMES = new Set([
+  "search_replace",
+  "mkdir",
+  "mv",
+  "rm",
+  "touch"
+]);
+
+/**
+ * Parse JSON tool_calls format into internal tool_calls structure.
+ * Expected format: { tool_calls: [{ function: { name: string, arguments: object|string } }] }
+ *
+ * @param {Object} json - Parsed JSON object with tool_calls array
+ * @returns {Array} Array of tool call objects in standard format
+ * @throws {Error} If JSON structure is invalid
+ */
+function parseJsonToolCalls(json) {
+  if (!json || typeof json !== "object") {
+    throw new Error("Invalid JSON: not an object");
+  }
+
+  const toolCalls = Array.isArray(json.tool_calls) ? json.tool_calls : [json];
+  const result = [];
+
+  for (const toolCall of toolCalls) {
+    if (!toolCall || typeof toolCall !== "object") {
+      continue;
+    }
+
+    // Extract function object
+    const func = toolCall.function || toolCall;
+    if (!func || typeof func !== "object") {
+      continue;
+    }
+
+    const name = typeof func.name === "string" ? func.name : null;
+    if (!name) {
+      continue;
+    }
+
+    // Validate tool name is in allowed list
+    if (!ALLOWED_TOOL_NAMES.has(name)) {
+      continue;
+    }
+
+    // Parse arguments
+    let args;
+    if (typeof func.arguments === "string") {
+      try {
+        args = JSON.parse(func.arguments);
+      } catch (e) {
+        throw new Error(`Failed to parse arguments for ${name}: ${func.arguments}`);
+      }
+    } else if (typeof func.arguments === "object" && func.arguments !== null) {
+      args = func.arguments;
+    } else {
+      throw new Error(`Invalid arguments type for ${name}: ${typeof func.arguments}`);
+    }
+
+    result.push({
+      function: {
+        name,
+        arguments: JSON.stringify(args)
+      }
+    });
+  }
+
+  return result;
+}
+
 function extractResponseText(json) {
   if (!json || typeof json !== "object") return "";
   if (typeof json.output_text === "string") return json.output_text;
@@ -153,10 +224,28 @@ function parseResponse(rawText, fsTools, workspaceDir) {
 }
 
 /**
- * Parse structured text output (sr/op blocks) into tool_calls format.
- * Allows text-based model output to be processed through parseToolCalls.
+ * Parse structured text output into tool_calls format.
+ * First tries JSON parsing with schema validation, then falls back to sr/op block regex.
+ *
+ * @param {string} text - Raw text output from model
+ * @returns {Array} Array of tool call objects
  */
 function parseStructuredTextToToolCalls(text) {
+  // 1. First try JSON parsing with schema validation
+  const trimmed = typeof text === "string" ? text.trim() : "";
+  if (trimmed.startsWith("{")) {
+    try {
+      const json = JSON.parse(trimmed);
+      const jsonToolCalls = parseJsonToolCalls(json);
+      if (jsonToolCalls.length > 0) {
+        return jsonToolCalls;
+      }
+    } catch (e) {
+      // JSON parse or validation failed, continue to regex parsing
+    }
+  }
+
+  // 2. Fallback: parse sr/op blocks using regex
   const re = /```(sr|op)\s*([\s\S]*?)```/g;
   const toolCalls = [];
   let match;
@@ -388,5 +477,6 @@ module.exports = {
   parseOpBlock,
   parseResponse,
   parseToolCalls,
-  parseStructuredTextToToolCalls
+  parseStructuredTextToToolCalls,
+  parseJsonToolCalls
 };
