@@ -1,4 +1,0 @@
-```op
-MKDIR: project/frontend/css
-MKDIR: project/backend/data
-```
