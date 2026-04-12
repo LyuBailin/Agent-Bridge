@@ -59,7 +59,7 @@ function buildOperationGuidelines() {
     "- DO NOT manually copy content then delete original - use MV",
     "- When updating require/import paths, use paths relative to the file being edited",
     "- Output ONLY the blocks - no extra text, explanations, or separators",
-    "- IMPORTANT: sr block content must NOT contain >>> anywhere - use --- instead of >>> for separators"
+    "- The >>> end marker must be on its own line (not preceded by whitespace)"
   ].join("\n");
 }
 

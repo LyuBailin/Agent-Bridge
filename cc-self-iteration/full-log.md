@@ -142,3 +142,25 @@
 - ★★★★ LLM 难度校准 (规划中，未排入 task)
 - ★★★ 向量嵌入 (workspace 30+ 文件，规模不足，暂缓)
 
+## 迭代 9 (2026-04-12)
+
+### 审查发现
+- 问题数量: 4 个 (2 高优先级, 2 中优先级)
+- 主要问题: 正则表达式无法处理内容中包含 `>>>` 的情况；模型生成的 sr 块缺少 `>>>` 结束标记
+
+### 执行任务
+- Task 1: 修复正则表达式 ✓
+- Task 2: 改进错误信息 ✓
+- Task 3: 更新操作指南 ✓
+
+### 测试结果
+- npm test: 401 tests passed, 0 failed ✓
+
+### 修改文件
+- `src/core/adapter/parser.js` (正则改为 `\n>>>` 要求独占一行；错误信息增加 block preview)
+- `src/prompt/operation_guidelines.js` (添加 `>>> prohibition` 规则)
+
+### 提交
+- `a7b2ad0`: checkpoint iteration-9: fix sr block regex to use \n>>> marker
+- `3a19de0`: checkpoint iteration-9: add >>> prohibition in sr block content
+
