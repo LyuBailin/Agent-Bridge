@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "task_id": "iteration-9-test-1",
-  "instruction": "个人笔记管理系统 - 继续完善部署阶段，创建 README.md 文档",
+  "task_id": "iteration-10-test-1",
+  "instruction": "创建测试文件 test_regex.txt，内容包含多行文本，其中有一行包含 >>> 符号，用于验证 sr 块解析器能正确处理内容中的 >>>",
   "status": "done",
   "difficulty": "low",
-  "complexity_score": 10,
-  "started_at": "2026-04-12T20:50:04.945Z",
-  "updated_at": "2026-04-12T20:53:14.247Z",
-  "finished_at": "2026-04-12T20:53:14.239Z"
+  "complexity_score": 15,
+  "started_at": "2026-04-12T21:18:49.192Z",
+  "updated_at": "2026-04-12T21:18:55.716Z",
+  "finished_at": "2026-04-12T21:18:55.709Z"
 }

@@ -29,9 +29,11 @@ function parseSrBlock(blockText) {
   if (!fileMatch) throw new Error("sr block missing FILE:");
   const file = fileMatch[1].trim();
 
-  // Use \n>>> to ensure end marker is on its own line, preventing content with >>> from being mistaken
-  const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\n([\s\S]*?)\n>>>\s*/m);
-  const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\n([\s\S]*?)\n>>>\s*/m);
+  // Use \n>>>(?=\n|$) to ensure end marker is on its own line
+  // The >>> must be preceded by newline, and followed by newline or end-of-file
+  // This prevents ">>> text" in content from being mistaken as end marker
+  const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m);
+  const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m);
   if (!replaceMatch) {
     // Provide helpful error with context
     const preview = blockText.substring(0, 200).replace(/\n/g, '\\n');
