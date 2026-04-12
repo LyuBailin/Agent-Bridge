@@ -197,6 +197,7 @@
 - Task 2: 实现 parseJsonToolCalls ✓
 - Task 3: 集成到 parseStructuredTextToToolCalls ✓
 - Task 4: 添加单元测试 ✓
+- Task 5: 更新 output_discipline.js 要求 JSON 格式 ✓
 
 ### 测试结果
 - npm test: 408 tests passed, 0 failed ✓
@@ -205,7 +206,9 @@
 ### 修改文件
 - `src/core/adapter/parser.js` (新增 parseJsonToolCalls，修改 parseStructuredTextToToolCalls 为 JSON-first)
 - `test/unit/adapter/parser.test.js` (新增 7 个测试用例)
+- `src/prompt/output_discipline.js` (添加 JSON 格式作为首选输出方式)
 
 ### 提交
 - `6e056a6`: checkpoint iteration-11: add JSON Schema validation support
+- `b9af216`: iteration-11: update output_discipline.js to prefer JSON format with tool_calls
 
