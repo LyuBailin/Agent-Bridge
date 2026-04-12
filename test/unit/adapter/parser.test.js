@@ -396,3 +396,138 @@ test("parseToolCalls: throws on blocking risk in batch", async () => {
     /Blocking risk detected/
   );
 });
+
+// --- parseJsonToolCalls tests ---
+
+test("parseJsonToolCalls: parses valid JSON tool_calls format", () => {
+  const json = {
+    tool_calls: [
+      {
+        function: {
+          name: "search_replace",
+          arguments: { file: "test.js", search: "old", replace: "new" }
+        }
+      }
+    ]
+  };
+  const result = parser.parseJsonToolCalls(json);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].function.name, "search_replace");
+  const args = JSON.parse(result[0].function.arguments);
+  assert.equal(args.file, "test.js");
+  assert.equal(args.search, "old");
+  assert.equal(args.replace, "new");
+});
+
+test("parseJsonToolCalls: parses arguments as string", () => {
+  const json = {
+    tool_calls: [
+      {
+        function: {
+          name: "mkdir",
+          arguments: JSON.stringify({ path: "lib" })
+        }
+      }
+    ]
+  };
+  const result = parser.parseJsonToolCalls(json);
+  assert.equal(result.length, 1);
+  const args = JSON.parse(result[0].function.arguments);
+  assert.equal(args.path, "lib");
+});
+
+test("parseJsonToolCalls: rejects unknown tool names", () => {
+  const json = {
+    tool_calls: [
+      {
+        function: {
+          name: "unknown_tool",
+          arguments: {}
+        }
+      }
+    ]
+  };
+  const result = parser.parseJsonToolCalls(json);
+  assert.equal(result.length, 0);
+});
+
+test("parseJsonToolCalls: handles content with >>> symbols", () => {
+  const json = {
+    tool_calls: [
+      {
+        function: {
+          name: "search_replace",
+          arguments: {
+            file: "test.js",
+            search: "code with >>> operator",
+            replace: "safe code"
+          }
+        }
+      }
+    ]
+  };
+  const result = parser.parseJsonToolCalls(json);
+  assert.equal(result.length, 1);
+  const args = JSON.parse(result[0].function.arguments);
+  assert.equal(args.search, "code with >>> operator");
+});
+
+// --- parseStructuredTextToToolCalls JSON-first tests ---
+
+test("parseStructuredTextToToolCalls: prefers JSON format over sr blocks", () => {
+  // JSON that looks like sr block syntax should be parsed as JSON
+  const jsonInput = JSON.stringify({
+    tool_calls: [
+      {
+        function: {
+          name: "touch",
+          arguments: { path: "newfile.txt" }
+        }
+      }
+    ]
+  });
+  const result = parser.parseStructuredTextToToolCalls(jsonInput);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].function.name, "touch");
+});
+
+test("parseStructuredTextToToolCalls: falls back to sr blocks when JSON fails", () => {
+  const srInput = [
+    "```sr",
+    "FILE: test.txt",
+    "SEARCH:",
+    "<<<",
+    "old",
+    ">>>",
+    "REPLACE:",
+    "<<<",
+    "new",
+    ">>>",
+    "```"
+  ].join("\n");
+  const result = parser.parseStructuredTextToToolCalls(srInput);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].function.name, "search_replace");
+});
+
+test("parseStructuredTextToToolCalls: handles JSON with >>> in content", () => {
+  const jsonInput = JSON.stringify({
+    tool_calls: [
+      {
+        function: {
+          name: "search_replace",
+          arguments: {
+            file: "test.js",
+            search: "a >>> b",
+            replace: "c >>> d"
+          }
+        }
+      }
+    ]
+  });
+  const result = parser.parseStructuredTextToToolCalls(jsonInput);
+  assert.equal(result.length, 1);
+  const args = JSON.parse(result[0].function.arguments);
+  assert.equal(args.search, "a >>> b");
+  assert.equal(args.replace, "c >>> d");
+});
