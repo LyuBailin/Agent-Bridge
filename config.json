@@ -13,7 +13,7 @@
     "api_key_env": "OPENAI_API_KEY"
   },
   "useOllama": true,
-  "useFunctionCalling": false,
+  "useFunctionCalling": true,
   "functionCalling": {
     "required": false,
     "allowFallback": true
