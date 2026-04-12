@@ -92,39 +92,85 @@
 
 ### 0.1 读取任务
 
+读取 `DifficultTask.txt` 了解当前目标任务：
+
 ```bash
 cat /home/lyublin/LLM/Agent-Bridge/DifficultTask.txt
 ```
 
-### 0.2 更新任务队列
+### 0.2 任务阶段分解
 
-写入 `tasks/task.json`:
+**重要**: 复杂任务必须先分解为子任务阶段，写入迭代记录文件夹后再执行
+
+1. **分析任务结构**:
+   - **简单任务**（单文件/少量文件修改）→ 分解为1个子任务
+   - **复杂任务**（多模块、多阶段）→ 必须分解为多个子任务阶段
+
+2. **分解原则**:
+   - 按功能模块/层级分解（如：后端初始化→后端核心→前端核心→前端组件→集成）
+   - 每个子任务对应 `tasks/task.json` 中一个 `subtasks` 条目
+   - 子任务之间有依赖关系的必须在plan中标注
+
+3. **写入迭代记录文件夹**: 将分解结果写入 `cc-self-iteration/iteration-{N}/task-decomposition.md`
+
+```markdown
+# 迭代 {N} 任务分解
+
+## 分解结果
+
+| ID | 描述 | 依赖 | 状态 |
+|----|------|------|------|
+| 0.1 | 后端初始化 | - | pending |
+| 0.2 | 后端核心API | 0.1 | pending |
+| 0.3 | 前端初始化 | 0.1 | pending |
+| 0.4 | 前端核心 | 0.3 | pending |
+| 0.5 | 集成配置 | 0.2, 0.4 | pending |
+
+## 执行顺序
+0.1 → 0.2 → 0.3 → 0.4 → 0.5
+```
+
+### 0.3 依次执行各阶段
+
+对于每个就绪的子任务（依赖已满足），按顺序执行：
+
+1. **写入任务队列**: 将当前子任务写入 `tasks/task.json`
 
 ```json
 {
   "schema_version": 1,
-  "task_id": "iteration-{N}-{subtask-id}",
-  "instruction": "<从 DifficultTask.txt 读取的内容>",
+  "task_id": "phase-{N}-{subtask-id}",
+  "instruction": "<子任务描述>",
   "status": "queued",
   "difficulty": "<low|medium|high>",
-  "complexity_score": <0-100>
+  "complexity_score": <0-100>,
+  "subtasks": []
 }
 ```
 
-### 0.3 运行 Agent Bridge
+2. **运行 Agent Bridge**: 执行 `npm start`
 
 ```bash
 cd /home/lyublin/LLM/Agent-Bridge
 npm start
 ```
 
+3. **更新分解状态**: 执行完成后更新 `task-decomposition.md` 中该任务的状态
+
+4. **判断结果**:
+   - **任务成功** → 更新任务状态为done，继续执行下一个就绪任务
+   - **任务失败/Bug发现** → 触发阶段1，停止执行
+   - **无进展但未失败** → 评估是否需要优化
+
+5. **重复步骤1-4**: 直到所有子任务完成或触发阶段1
+
 ### 0.4 判断结果
 
 | 结果 | 操作 |
 |------|------|
-| 任务成功 | 更新 `current-state.md` 状态，记录完成 |
-| 任务失败/Bug 发现 | 触发阶段 1 |
-| 无进展但未失败 | 评估复杂度分数，≥50 触发阶段 1，<50 记录并结束 |
+| 所有子任务成功 | 更新 `current-state.md` 状态，记录完成 |
+| 任一任务失败/Bug发现 | 触发阶段1 |
+| 无进展但未失败 | 评估复杂度分数，≥50触发阶段1，<50记录并结束 |
 
 ---
 

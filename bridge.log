@@ -45,3 +45,14 @@
 [2026-04-12T21:18:49.193Z] task iteration-10-test-1 start
 [2026-04-12T21:18:52.375Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
 [2026-04-12T21:18:55.717Z] task iteration-10-test-1 ok (attempts=1, changed=true, commit=4bf24859cd689714819ce5e34797bf38b5006dae)
+[2026-04-12T21:48:10.676Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-12T21:48:10.678Z] task iteration-12-1 start
+[2026-04-12T21:53:40.724Z] task iteration-12-1 failed: No executable subtask found (DAG blocked)
+[2026-04-12T22:15:23.656Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-12T22:15:23.658Z] task iteration-12-1 start
+[2026-04-12T22:15:23.660Z] task iteration-12-1 skipped (duplicate from memory)
+[2026-04-12T22:19:33.142Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-12T22:19:33.144Z] task phase-12-1 start
+[2026-04-12T22:31:30.375Z] init ok (root=/home/lyublin/LLM/Agent-Bridge)
+[2026-04-12T22:31:30.377Z] task phase-13-1 start
+[2026-04-12T22:32:14.408Z] task phase-13-1 ok (attempts=1, changed=true, commit=9787f327a1ec895bfce520e8fb715fb5957a990f)
