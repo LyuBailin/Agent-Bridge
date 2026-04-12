@@ -1,6 +1,0 @@
-```op
-MKDIR: backend/node_modules/jest
-MKDIR: backend/node_modules/supertest
-MKDIR: backend/node_modules/swagger-ui-express
-MKDIR: backend/node_modules/swagger-jsdoc
-```
