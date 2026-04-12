@@ -13,7 +13,7 @@
     "openai_api_key": "sk-2TM8euNlKv1K0UNdwEM4Nw4YS7L5UIQuphO2ZQ9lwGoAszZe"
   },
   "useOllama": true,
-  "useFunctionCalling": false,
+  "useFunctionCalling": true,
   "functionCalling": {
     "required": false,
     "allowFallback": true
