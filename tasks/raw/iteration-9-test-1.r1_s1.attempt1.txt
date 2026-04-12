@@ -1,0 +1,71 @@
+```sr
+FILE: README.md
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+# 个人笔记管理系统 (Personal Notes Management System)
+
+## 项目简介
+
+个人笔记管理系统是一个基于Node.js、Express和SQLite的简单Web应用程序，用于创建、管理和查看个人笔记。
+
+## 功能列表
+
+- 用户注册与登录
+- 创建、编辑和删除笔记
+- 笔记分类
+- 搜索功能
+
+## 安装说明
+
+1. 确保已安装Node.js和npm。
+2. 克隆仓库到本地：
+   ```bash
+   git clone https://github.com/yourusername/personal-notes-system.git
+   ```
+3. 进入项目目录：
+   ```bash
+   cd personal-notes-system
+   ```
+4. 安装依赖：
+   ```bash
+   npm install
+   ```
+5. 创建SQLite数据库文件 `notes.db`。
+
+## 使用指南
+
+1. 启动开发服务器：
+   ```bash
+   npm start
+   ```
+2. 打开浏览器，访问 `http://localhost:3000`。
+3. 注册并登录账户，开始创建和管理笔记。
+
+## 技术栈
+
+- **Node.js**：后端运行环境。
+- **Express**：Web框架用于处理HTTP请求。
+- **SQLite**：轻量级数据库存储用户数据和笔记内容。
+
+## 部署信息
+
+1. 确保服务器已安装Node.js和npm。
+2. 将项目代码部署到服务器目录。
+3. 安装依赖：
+   ```bash
+   npm install --production
+   ```
+4. 启动应用：
+   ```bash
+   npm start
+   ```
+
+## 联系方式
+
+- 邮箱：contact@example.com
+- GitHub仓库：[https://github.com/yourusername/personal-notes-system](https://github.com/yourusername/personal-notes-system)
+>>>
+```

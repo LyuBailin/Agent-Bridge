@@ -355,9 +355,12 @@ async function orchestrateLongTask(env, task) {
   }
 
   // Now safe to check memoryPath for previously completed tasks (in case of restart)
-  const alreadyProcessed = await env._safeReadJson(env.memoryPath, { processed: {} }).then(
-    (m) => Boolean(m?.processed && m.processed[task.task_id])
+  // Only skip if memory shows a successful completion (final_status: "done")
+  // This allows re-running tasks that were skipped or failed
+  const memoryRecord = await env._safeReadJson(env.memoryPath, { processed: {} }).then(
+    (m) => m?.processed?.[task.task_id]
   );
+  const alreadyProcessed = memoryRecord?.final_status === "done";
 
   if (alreadyProcessed) {
     const finishedAt = nowIso();

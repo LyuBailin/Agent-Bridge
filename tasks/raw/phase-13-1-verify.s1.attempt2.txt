@@ -1,0 +1,13 @@
+```op
+MKDIR: project
+MKDIR: project/backend
+MKDIR: project/frontend
+MKDIR: project/frontend/css
+
+MV: backend/package.json -> project/backend/package.json
+MV: backend/data/store.json -> project/backend/data/store.json
+MV: frontend/index.html -> project/frontend/index.html
+MV: frontend/login.html -> project/frontend/login.html
+MV: frontend/register.html -> project/frontend/register.html
+MV: frontend/css/style.css -> project/frontend/css/style.css
+```

@@ -9,7 +9,8 @@
 | 10 | 完成 | 正则表达式最终修复：使用 `\n>>>(?=\n|$)` 前瞻断言 |
 | 11 | 完成 | JSON Schema 验证支持：parseJsonToolCalls + JSON-first 解析 + JSON 格式 prompt |
 | 12 | 完成 | 空 SEARCH 块正则匹配修复：两阶段检测法处理 `<<<\n>>>\nREPLACE:` 模式 |
-| 13 | 完成 | 路径前缀检测修复：assertSafeRelPath 添加 workspace/ 前缀拒绝（任务执行因模型未遵循指令而失败，非 bug） |
+| 13 | 完成 | workspace/ 前缀自动剥离 + useFunctionCalling: true 启用 JSON Schema 模式 |
+| 14 | 完成 | memory.json 去重逻辑修复 + squashAndCommit 工作目录同步修复 |
 
 ## 已完成的高优先级优化
 
@@ -22,6 +23,9 @@
 - JSON Schema 输出与解析支持
 - `>>>` 独占一行正则修复
 - 空 SEARCH 块解析修复
+- useFunctionCalling: true 启用 JSON Schema 模式（替代 sr/op 文本块）
+- memory.json 去重逻辑修复（允许重跑失败/跳过任务）
+- squashAndCommit 工作目录同步修复
 
 ## 待处理问题（低优先级）
 
@@ -31,6 +35,8 @@
 - Replan 计数器修正
 - 隐藏文件支持
 - REPLACE 块空内容检测（如需）
+- MKDIR 路径解析问题
+- git reset --hard 后工作目录验证
 
 ## 测试覆盖
 

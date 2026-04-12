@@ -1,0 +1,6 @@
+```op
+MKDIR: backend/routes
+MKDIR: backend/data
+MKDIR: frontend/css
+MKDIR: frontend/js
+```

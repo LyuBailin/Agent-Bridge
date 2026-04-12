@@ -386,6 +386,17 @@ async function squashAndCommit(workspaceDir, { taskId, baseSha, finalMessage } =
       : `task: ${String(taskId ?? "").trim()}`.trim();
   await runGit(workspaceDir, ["commit", "-m", msg]);
   const { stdout: headOut } = await runGit(workspaceDir, ["rev-parse", "HEAD"]);
+
+  // Ensure working directory is in sync with git after squash
+  // Check if there are any uncommitted changes that should be committed
+  const { stdout: statusOut } = await runGit(workspaceDir, ["status", "--porcelain"]);
+  if (statusOut.trim().length > 0) {
+    // There are still uncommitted changes - this indicates a sync issue
+    // Stage and amend the commit to ensure all changes are captured
+    await runGit(workspaceDir, ["add", "-A"]);
+    await runGit(workspaceDir, ["commit", "--amend", "--no-edit"]);
+  }
+
   return { changed: true, commit: headOut.trim() };
 }
 

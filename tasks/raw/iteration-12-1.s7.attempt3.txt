@@ -1,0 +1,90 @@
+```op
+MKDIR: frontend/css
+```
+
+```sr
+FILE: frontend/css/style.css
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+/* Login Page Styling */
+.login-container {
+  width: 300px;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-input {
+  display: block;
+  margin-bottom: 10px;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.login-button {
+  background-color: #007BFF;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background-color: #0056b3;
+}
+
+/* Register Page Styling */
+.register-container {
+  width: 300px;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.register-input {
+  display: block;
+  margin-bottom: 10px;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.register-button {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.register-button:hover {
+  background-color: #218838;
+}
+
+/* Dashboard Page Styling */
+.dashboard-container {
+  width: 80%;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.dashboard-header {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.dashboard-content {
+  margin-top: 20px;
+}
+>>>
+```
