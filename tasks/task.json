@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "task_id": "phase-13-1-test3",
-  "instruction": "Phase 1: 项目初始化\n\n使用 JSON 格式输出 tool_calls 来创建文件：\n\n```json\n{\n  \"tool_calls\": [\n    {\n      \"function\": {\n        \"name\": \"search_replace\",\n        \"arguments\": {\n          \"file\": \"project/backend/package.json\",\n          \"search\": \"\",\n          \"replace\": \"{...}\"\n        }\n      }\n    }\n  ]\n}\n```\n\n任务内容：\n1. 创建 project/backend/package.json\n2. 创建 project/backend/data/store.json\n3. 创建 project/frontend/index.html\n4. 创建 project/frontend/login.html\n5. 创建 project/frontend/register.html\n6. 创建 project/frontend/css/style.css",
+  "task_id": "phase-14-2.1-server",
+  "instruction": "创建 backend/server.js 在 workspace/project/backend/server.js，实现：\n- Express 服务器入口\n- CORS 中间件配置\n- JSON 解析中间件\n- 路由导入 (auth, notes)\n- 服务器监听 (端口 3000)\n- 错误处理中间件",
   "status": "done",
   "difficulty": "medium",
-  "complexity_score": 30,
+  "complexity_score": 15,
   "subtasks": [],
-  "started_at": "2026-04-12T23:15:22.486Z",
-  "updated_at": "2026-04-12T23:16:03.127Z",
-  "finished_at": "2026-04-12T23:16:03.120Z"
+  "started_at": "2026-04-12T23:38:35.415Z",
+  "updated_at": "2026-04-12T23:38:41.427Z",
+  "finished_at": "2026-04-12T23:38:41.420Z"
 }

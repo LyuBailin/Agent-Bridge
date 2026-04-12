@@ -1,0 +1,15 @@
+```op
+MKDIR: workspace/
+```
+
+```sr
+FILE: test_regex.txt
+SEARCH:
+<<<
+>>>
+REPLACE:
+<<<
+This is a test line with >>> symbol.
+>>> This is another line.
+>>>
+```

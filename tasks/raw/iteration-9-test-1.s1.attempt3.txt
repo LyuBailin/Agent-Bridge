@@ -1,0 +1,35 @@
+```sr
+FILE: README.md
+SEARCH:
+<<<
+# 个人笔记管理系统
+>>>
+REPLACE:
+<<<
+# 个人笔记管理系统
+
+## 部署指南
+
+1. **克隆仓库**
+   ```bash
+   git clone <repository-url>
+   cd 个人笔记管理系统
+   ```
+
+2. **安装依赖**
+   ```bash
+   npm install
+   ```
+
+3. **配置环境变量**
+   复制 `.env.example` 并重命名为 `.env`，根据需要修改配置。
+
+4. **启动应用**
+   ```bash
+   npm start
+   ```
+
+5. **访问系统**
+   打开浏览器，访问 `http://localhost:3000`。
+>>>
+```

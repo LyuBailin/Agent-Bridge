@@ -1,0 +1,10 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"workspace/project/backend/package.json\",\"search\":\"{\\n  \\\"name\\\": \\\"backend\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"\\\",\\n  \\\"main\\\": \\\"index.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"test\\\": \\\"echo \\\\\\\"Error: no test specified\\\\\\\" && exit 1\\\"\\n  },\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\"\\n}\",\"replace\":\"{\\n  \\\"name\\\": \\\"notes-backend\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"Personal Notes API\\\",\\n  \\\"main\\\": \\\"server.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node server.js\\\"\\n  },\\n  \\\"dependencies\\\": {\\n    \\\"bcrypt\\\": \\\"^5.0.1\\\",\\n    \\\"cors\\\": \\\"^2.8.5\\\",\\n    \\\"express\\\": \\\"^4.17.3\\\",\\n    \\\"jsonwebtoken\\\": \\\"^8.5.1\\\"\\n  }\\n}\"}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tool_calls": [
+    {
+      "function": {
+        "name": "mkdir",
+        "arguments": "{\"path\":\"backend\"}"
+      }
+    },
+    {
+      "function": {
+        "name": "search_replace",
+        "arguments": "{\"file\":\"backend/server.js\",\"search\":\"\",\"replace\":\"const express = require('express');\\nconst cors = require('cors');\\nconst bodyParser = require('body-parser');\\n\\nconst app = express();\\n\\n// CORS middleware\\napp.use(cors());\\n\\n// JSON parsing middleware\\napp.use(bodyParser.json());\\n\\n// Import routes\\nconst authRoutes = require('./routes/auth');\\nconst notesRoutes = require('./routes/notes');\\n\\n// Use routes\\napp.use('/auth', authRoutes);\\napp.use('/notes', notesRoutes);\\n\\n// Error handling middleware\\napp.use((err, req, res, next) => {\\n  console.error(err.stack);\\n  res.status(500).json({ message: 'Something went wrong!' });\\n});\\n\\n// Server listening on port 3000\\nconst PORT = 3000;\\napp.listen(PORT, () => {\\n  console.log(`Server is running on http://localhost:${PORT}`);\\n});\"}"
+      }
+    }
+  ]
+}

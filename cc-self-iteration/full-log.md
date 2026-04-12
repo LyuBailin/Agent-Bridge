@@ -271,3 +271,48 @@
 - assertSafeRelPath 修复有效，正确拒绝了错误路径
 - 任务失败原因是 Ollama 模型未遵循指令（模型行为问题）
 - 不是 Agent Bridge bug，不需要进一步优化
+
+### 最终修复 (2026-04-12 夜)
+
+#### 问题发现
+- 根本原因：useFunctionCalling: false 导致 Ollama 使用 /api/generate，模型自由输出 sr/op 文本块
+- 即使路径正确，模型仍然不会用 sr 块正确创建文件内容
+
+#### 修复方案
+- 启用 useFunctionCalling: true（config.json）
+- 在 resolveInWorkspace 中自动剥离 workspace/ 前缀
+
+#### 验证结果
+- phase-13-1-test3: 1 次尝试成功
+- 文件创建在正确位置: workspace/project/...
+- 提交: cadfdc2290d0832bd012c654dd3e22f80f584dfb
+
+### 提交
+- `c9bc732`: checkpoint iteration-13: task-1 fix assertSafeRelPath to reject workspace/ prefix
+- `e99794b`: fix: auto-strip workspace/ prefix in resolveInWorkspace instead of rejecting it
+- `821c47f`: fix: enable useFunctionCalling in config.json to use JSON Schema mode
+
+## 迭代 14 (2026-04-12)
+
+### 审查发现
+- 问题数量: 4 个 (3 高优先级, 1 中优先级)
+- 主要问题: memory.json 导致任务无法重跑、squashAndCommit 后工作目录与 git 不同步
+
+### 执行任务
+- Task 1: 修复 memory.json 去重逻辑 ✓
+- Task 2: 修复 squashAndCommit 工作目录同步 ✓
+
+### 测试结果
+- npm test: 408 tests passed, 0 failed ✓
+- 语法检查: 通过
+
+### 修改文件
+- `src/core/workflow.js` (memory 检查逻辑，只有 final_status === "done" 时才跳过)
+- `src/core/git_manager.js` (squashAndCommit 后检查并修复未同步状态)
+
+### 根因分析
+1. memory.json 记录 task_id 后，即使删除 result.json 也无法重跑相同任务
+2. squashAndCommit 使用 git reset --soft 后，如果存在未提交更改，可能导致工作目录与 git 不同步
+
+### 提交
+- 迭代 14 完成
