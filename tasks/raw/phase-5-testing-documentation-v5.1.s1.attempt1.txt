@@ -1,4 +1,0 @@
-```op
-MKDIR: backend
-MV: package.json -> backend/package.json
-```

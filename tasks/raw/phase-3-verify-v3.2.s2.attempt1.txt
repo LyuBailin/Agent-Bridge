@@ -1,3 +1,0 @@
-```op
-MKDIR: frontend/components
-```
