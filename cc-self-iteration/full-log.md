@@ -132,7 +132,7 @@
 - `src/core/workflow.js` (expandRelatedFiles 调用传入 edges + direction)
 
 ### 根因分析
-1. **难度评估**: 基于硬编码关键词，无语义理解；likelyPathCount 不验证文件存在性；replan 时未动态校准
+1. **难度评估**: 基于硬编码关键词，无语义理解； likelyPathCount 不验证文件存在性；replan 时未动态校准
 2. **上下文管理**: expandRelatedFiles 只用 reverseEdges 单向扩展，遗漏子模块；import graph 解析对动态 import/export from/TS 无效；optimizeContext greedy fill 无语义排序
 
 ### 优先级建议
@@ -212,3 +212,26 @@
 - `6e056a6`: checkpoint iteration-11: add JSON Schema validation support
 - `b9af216`: iteration-11: update output_discipline.js to prefer JSON format with tool_calls
 
+## 迭代 12 (2026-04-12)
+
+### 审查发现
+- 问题数量: 1 个 (1 高优先级)
+- 主要问题: 空 SEARCH 块正则匹配错误，当模型输出 `<<<\n>>>` 表示空搜索时，非贪婪匹配错误地将第一个 `\n>>>` 作为结束标记
+
+### 执行任务
+- Task 1: 修复空 SEARCH 块解析 ✓
+
+### 测试结果
+- npm test: 408 tests passed, 0 failed ✓
+- 语法检查: 通过
+- 实际文件解析验证: 通过（空搜索返回 `""`）
+
+### 修改文件
+- `src/core/adapter/parser.js` (采用两阶段检测法处理空 SEARCH 块)
+
+### 根因分析
+- 正则 `/SEARCH:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m` 中，非贪婪匹配 `([\s\S]*?)` 在空搜索块 `<<<\n>>>\nREPLACE:...` 时，找到第一个 `\n>>>`（第8行）就停止，导致捕获 `>>>\nREPLACE:...` 而非空字符串
+- 修复方案：两阶段检测 - 先检测 `<<<\n>>>\nREPLACE:` 紧邻模式，确认是空搜索后直接返回空字符串
+
+### 提交
+- `b2ccc79`: cleanup: simplify current-state.md

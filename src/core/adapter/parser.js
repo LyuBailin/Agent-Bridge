@@ -103,7 +103,18 @@ function parseSrBlock(blockText) {
   // Use \n>>>(?=\n|$) to ensure end marker is on its own line
   // The >>> must be preceded by newline, and followed by newline or end-of-file
   // This prevents ">>> text" in content from being mistaken as end marker
-  const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m);
+  //
+  // Special case: empty search/replace block where <<<\n>>>\n immediately precedes REPLACE:
+  // In this case, the non-greedy match incorrectly matches the first \n>>> as the end marker.
+  // We handle this with a two-case approach:
+  // 1. If SEARCH: is immediately followed by <<<\n>>>\nREPLACE:, treat as empty search
+  // 2. Otherwise, use the standard non-greedy regex
+  let search = "";
+  const isEmptySearchBlock = /SEARCH:\s*<<<\n>>>\nREPLACE:/.test(cleanedBlockText);
+  if (!isEmptySearchBlock) {
+    const searchMatch = cleanedBlockText.match(/SEARCH:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m);
+    if (searchMatch) search = searchMatch[1];
+  }
   const replaceMatch = cleanedBlockText.match(/REPLACE:\s*<<<\n([\s\S]*?)\n>>>(?=\n|$)/m);
   if (!replaceMatch) {
     // Provide helpful error with context
@@ -111,7 +122,7 @@ function parseSrBlock(blockText) {
     throw new Error(`sr block missing REPLACE for ${file}. Block preview: "${preview}"`);
   }
 
-  let search = searchMatch ? searchMatch[1] : "";
+  // Normalize placeholder patterns to empty string
   if (search.trim() !== "" && EMPTY_SEARCH_PATTERNS.includes(search.trim())) {
     search = "";
   }
