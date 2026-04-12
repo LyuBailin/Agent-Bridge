@@ -9,6 +9,7 @@
 | 10 | 完成 | 正则表达式最终修复：使用 `\n>>>(?=\n|$)` 前瞻断言 |
 | 11 | 完成 | JSON Schema 验证支持：parseJsonToolCalls + JSON-first 解析 + JSON 格式 prompt |
 | 12 | 完成 | 空 SEARCH 块正则匹配修复：两阶段检测法处理 `<<<\n>>>\nREPLACE:` 模式 |
+| 13 | 完成 | 路径前缀检测修复：assertSafeRelPath 添加 workspace/ 前缀拒绝（任务执行因模型未遵循指令而失败，非 bug） |
 
 ## 已完成的高优先级优化
 
