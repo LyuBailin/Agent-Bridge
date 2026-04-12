@@ -3,7 +3,15 @@ const path = require("node:path");
 const { toPosixPath, assertSafeRelPath } = require("../shared/path");
 
 function resolveInWorkspace(workspaceDir, relPath) {
-  const safeRel = assertSafeRelPath(relPath);
+  let safeRel = assertSafeRelPath(relPath);
+  // Auto-strip redundant 'workspace/' prefix if present
+  const parts = safeRel.split(path.sep);
+  if (parts[0] === "workspace") {
+    safeRel = parts.slice(1).join(path.sep);
+    if (safeRel === "") {
+      throw new Error(`Invalid FILE path: \`workspace/\` is not a valid file path`);
+    }
+  }
   const abs = path.resolve(workspaceDir, safeRel);
   const ws = path.resolve(workspaceDir) + path.sep;
   if (!abs.startsWith(ws)) {

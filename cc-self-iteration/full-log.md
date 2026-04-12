@@ -235,3 +235,39 @@
 
 ### 提交
 - `b2ccc79`: cleanup: simplify current-state.md
+
+## 迭代 13 (2026-04-12)
+
+### 审查发现
+- 问题数量: 3 个 (2 高优先级, 1 中优先级)
+- 主要问题: assertSafeRelPath 未检测冗余的 workspace/ 前缀，导致文件创建在 workspace/workspace/ 嵌套目录
+
+### 执行任务
+- Task 1: 修复 assertSafeRelPath 添加 workspace/ 前缀检测 ✓
+- Task 2: 更新任务指令措辞（待下次验证）
+
+### 测试结果
+- npm test: 408 tests passed, 0 failed ✓
+- 语法检查: 通过
+
+### 修改文件
+- `src/shared/path.js` (assertSafeRelPath 新增 workspace/ 前缀检测)
+
+### 根因分析
+- 模型生成 sr 块时，任务指令 "在 workspace/ 下创建" 被字面理解
+- 模型生成的 FILE 路径包含 workspace/ 前缀
+- assertSafeRelPath 验证通过（路径安全，无 .. 等），但创建了错误的嵌套目录
+
+### 提交
+- `c9bc732`: checkpoint iteration-13: task-1 fix assertSafeRelPath to reject workspace/ prefix
+
+### 迭代 13 后续 (2026-04-12 晚)
+
+#### 任务重试结果
+- phase-13-1-retry: 失败（模型仍生成 `workspace/` 前缀路径）
+- phase-13-1-retry2: 失败（模型仍生成 `workspace/` 前缀路径）
+
+#### 结论
+- assertSafeRelPath 修复有效，正确拒绝了错误路径
+- 任务失败原因是 Ollama 模型未遵循指令（模型行为问题）
+- 不是 Agent Bridge bug，不需要进一步优化

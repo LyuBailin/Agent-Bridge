@@ -36,13 +36,6 @@ function assertSafeRelPath(relPath) {
   if (parts[0] === ".git") {
     throw new Error(`Invalid FILE path (.git): ${relPath} - do not reference .git directory directly`);
   }
-  // Reject paths that start with 'workspace/' - paths are always relative to workspace root
-  if (parts[0] === "workspace") {
-    throw new Error(
-      `Invalid FILE path (\`workspace/\` prefix): \`${relPath}\` - do not include 'workspace/' prefix. ` +
-      `Paths are relative to the workspace root, e.g., use \`project/backend/package.json\` instead of \`workspace/project/backend/package.json\`.`
-    );
-  }
   return normalized;
 }
 
