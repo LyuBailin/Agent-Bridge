@@ -16,7 +16,7 @@
 | Phase 2 | 5/5 | done |
 | Phase 3 | 5/5 | done |
 | Phase 4 | 3/3 | done |
-| Phase 5 | 2/3 | in_progress |
+| Phase 5 | 3/3 | done |
 
 ## 当前阶段: Phase 5
 
@@ -43,7 +43,7 @@
 | 4.3 | 实现删除确认对话框 | done | |
 | 5.1 | 添加错误提示 | done | 手动实现（触发优化后执行）|
 | 5.2 | 验证前后端联调 | done | |
-| 5.3 | 创建 README.md | pending | 未执行 |
+| 5.3 | 创建 README.md | done | |
 
 ## Agent Bridge Bug 修复记录
 
