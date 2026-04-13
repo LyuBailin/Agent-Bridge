@@ -1,12 +1,11 @@
 {
   "schema_version": 1,
-  "task_id": "phase-14-2.1-server",
-  "instruction": "创建 backend/server.js 在 workspace/project/backend/server.js，实现：\n- Express 服务器入口\n- CORS 中间件配置\n- JSON 解析中间件\n- 路由导入 (auth, notes)\n- 服务器监听 (端口 3000)\n- 错误处理中间件",
-  "status": "done",
-  "difficulty": "medium",
-  "complexity_score": 15,
+  "task_id": "phase-15-1.1",
+  "instruction": "创建项目目录结构在 workspace/project/:\n- backend/routes/ 目录\n- backend/data/ 目录\n- frontend/css/ 目录\n- frontend/js/ 目录",
+  "status": "queued",
+  "difficulty": "easy",
+  "complexity_score": 5,
   "subtasks": [],
-  "started_at": "2026-04-12T23:38:35.415Z",
-  "updated_at": "2026-04-12T23:38:41.427Z",
-  "finished_at": "2026-04-12T23:38:41.420Z"
+  "dependencies": [],
+  "created_at": "2026-04-13T00:00:00.000Z"
 }
