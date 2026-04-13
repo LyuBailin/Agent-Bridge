@@ -57,30 +57,54 @@ function validateOperationSchema(output, operationType) {
   const errors = [];
   const blocksFound = [];
 
+  // Try to detect JSON format tool calls
+  let hasJsonToolCalls = false;
+  let hasSrBlock = false;
+  let hasOpBlock = false;
+
+  if (typeof output === "string" && output.trim().startsWith("{")) {
+    try {
+      const json = JSON.parse(output.trim());
+      // Check if it looks like tool_calls format
+      if (json.tool_calls || json.function_call ||
+          (json.name && json.arguments) ||
+          (json.function && (json.function.name || json.function.arguments))) {
+        hasJsonToolCalls = true;
+      }
+    } catch (e) {
+      // Not valid JSON, continue with text parsing
+    }
+  }
+
   const srMatches = output.match(/```sr/g) || [];
   const opMatches = output.match(/```op/g) || [];
 
-  if (srMatches.length > 0) blocksFound.push("sr");
-  if (opMatches.length > 0) blocksFound.push("op");
+  if (srMatches.length > 0) { blocksFound.push("sr"); hasSrBlock = true; }
+  if (opMatches.length > 0) { blocksFound.push("op"); hasOpBlock = true; }
+
+  // If JSON tool calls are present, assume correct format and skip block validation
+  if (hasJsonToolCalls) {
+    return { valid: true, errors: [], blocksFound: ["json_tool_calls"] };
+  }
 
   if (operationType === "fileops-only") {
-    if (srMatches.length > 0) {
+    if (hasSrBlock) {
       errors.push(
         "ERROR: Found ```sr blocks but this is a file-operations-only task. Use ONLY ```op blocks (MKDIR, MV, RM)."
       );
     }
-    if (opMatches.length === 0) {
+    if (!hasOpBlock) {
       errors.push(
         "ERROR: No ```op blocks found. This task requires file operations (MKDIR, MV, RM)."
       );
     }
   } else if (operationType === "content-only") {
-    if (opMatches.length > 0) {
+    if (hasOpBlock) {
       errors.push(
         "ERROR: Found ```op blocks but this is a content-editing-only task. Use ONLY ```sr blocks (SEARCH/REPLACE)."
       );
     }
-    if (srMatches.length === 0) {
+    if (!hasSrBlock) {
       errors.push(
         "ERROR: No ```sr blocks found. This task requires content editing (SEARCH/REPLACE)."
       );
