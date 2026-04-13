@@ -30,10 +30,17 @@
 
 | Bug ID | 描述 | 预期位置 | 状态 |
 |--------|------|----------|------|
-| Bug-1 | api.js 中 fetch 未处理 401 | frontend/js/api.js | 待验证 |
-| Bug-2 | JWT 验证未检查 token 过期 | backend/routes/notes.js | 待验证 |
-| Bug-3 | 注册未验证用户名重复 | backend/routes/auth.js | 已修复（task 2.2 实现了正确版本）|
-| Bug-4 | 删除用 GET 代替 DELETE | frontend/js/api.js | 待验证 |
+| Bug-1 | api.js 中 fetch 未处理 401 | frontend/js/api.js | ✅ 不存在（代码已正确处理 401）|
+| Bug-2 | JWT 验证未检查 token 过期 | backend/routes/notes.js | ✅ 不存在（jwt.verify 正确处理过期）|
+| Bug-3 | 注册未验证用户名重复 | backend/routes/auth.js | ✅ 不存在（task 2.2 生成了正确版本）|
+| Bug-4 | 删除用 GET 代替 DELETE | frontend/js/api.js | ✅ 不存在（代码正确使用 DELETE 方法）|
+
+## 代码审查 - 新发现 Bug
+
+| Bug ID | 描述 | 位置 | 类型 | 处理 |
+|--------|------|------|------|------|
+| Bug-5 | auth.js 缺少 jwt 模块导入 | backend/routes/auth.js:1 | 生成代码错误 | 已修复 |
+| 说明 | jwt.sign() 在 login 接口中被使用但未导入 jsonwebtoken 模块，会导致运行时崩溃 |
 
 ## Task 5.1 完成记录
 
