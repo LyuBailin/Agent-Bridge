@@ -70,6 +70,23 @@ async function getHeadSha(workspaceDir) {
   return createSnapshot(workspaceDir);
 }
 
+/**
+ * Check if workspace has uncommitted changes
+ * Returns { hasChanges: boolean, description: string }
+ */
+async function checkWorkspaceDirty(workspaceDir) {
+  try {
+    const { stdout: statusOut } = await runGit(workspaceDir, ["status", "--porcelain"]);
+    const hasChanges = statusOut.trim().length > 0;
+    return {
+      hasChanges,
+      description: hasChanges ? `Uncommitted changes:\n${statusOut}` : "Clean"
+    };
+  } catch (e) {
+    return { hasChanges: false, description: "Unable to check status" };
+  }
+}
+
 async function createCheckpointMarker(workspaceDir, { taskId, subtaskId } = {}) {
   // Marker is just the current HEAD sha; callers store it in plan state.
   // (taskId/subtaskId kept for future expansion.)
@@ -115,9 +132,28 @@ async function handleEdit(change, workspaceDir, fsTools) {
   const { abs, safeRel } = resolved;
 
   const existing = await fs.readFile(abs, "utf8").catch((err) => {
-    if (err && err.code === "ENOENT") return "";
+    if (err && err.code === "ENOENT") return null; // null indicates file doesn't exist
     throw err;
   });
+
+  // If file doesn't exist, create it with replace content
+  if (existing === null) {
+    const isEmptySearch = change.search === "" || EMPTY_SEARCH_PATTERNS.includes(change.search);
+    if (isEmptySearch) {
+      await fsTools.updateFile(workspaceDir, safeRel, change.replace);
+      return { ok: true, appliedFile: safeRel };
+    }
+    // File doesn't exist and search is not empty - cannot create file this way
+    return {
+      ok: false,
+      error: {
+        kind: "file_not_found",
+        file: safeRel,
+        message: `Cannot create file with SEARCH/REPLACE: file does not exist and search pattern is not empty. Use TOUCH to create the file first.`,
+        details: null
+      }
+    };
+  }
 
   let nextContent;
   const isEmptySearch = change.search === "" || EMPTY_SEARCH_PATTERNS.includes(change.search);
@@ -161,7 +197,14 @@ async function handleMkdir(change, workspaceDir, fsTools) {
   const { resolved, error } = resolvePath(fsTools, workspaceDir, change.path);
   if (error) return { ok: false, error };
   await fs.mkdir(resolved.abs, { recursive: true });
-  return { ok: true, appliedFile: null }; // directories not tracked by git
+  // Create .gitkeep to ensure git tracks the directory
+  const gitkeepPath = path.join(resolved.abs, '.gitkeep');
+  try {
+    await fs.access(gitkeepPath);
+  } catch {
+    await fs.writeFile(gitkeepPath, '');
+  }
+  return { ok: true, appliedFile: null };
 }
 
 async function handleRm(change, workspaceDir, fsTools) {
@@ -404,6 +447,7 @@ module.exports = {
   ensureRepo,
   createSnapshot,
   getHeadSha,
+  checkWorkspaceDirty,
   createCheckpointMarker,
   applySearchReplaceChanges,
   safeApplyPatch,

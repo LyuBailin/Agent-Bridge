@@ -357,6 +357,14 @@ async function orchestrateLongTask(env, task) {
   // Now safe to check memoryPath for previously completed tasks (in case of restart)
   // Only skip if memory shows a successful completion (final_status: "done")
   // This allows re-running tasks that were skipped or failed
+
+  // Bug-3 fix: Check workspace git status before starting task
+  // If workspace has uncommitted changes, warn and require clean state
+  const workspaceStatus = await gitManager.checkWorkspaceDirty(env.workspaceDir);
+  if (workspaceStatus.hasChanges) {
+    await env._appendLog(env.logPath, `workspace has uncommitted changes, task ${task.task_id} may conflict:\n${workspaceStatus.description}`);
+    // Don't fail the task, but log the warning - Supervisor should ensure clean state before creating tasks
+  }
   const memoryRecord = await env._safeReadJson(env.memoryPath, { processed: {} }).then(
     (m) => m?.processed?.[task.task_id]
   );
