@@ -13,7 +13,7 @@
 ## 项目结构
 
 ```
-project/
+workspace/
 ├── backend/
 │   ├── package.json
 │   ├── server.js           # Express 服务器入口
