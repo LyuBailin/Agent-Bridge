@@ -1,9 +1,32 @@
-# node_modules/
-# /*.log
-# /*.md 
-# .env
-# tasks/result.json
-# tasks/raw/
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+bridge.log
+claude.log
+ollama.log
+
+# Task artifacts (runtime generated)
+tasks/raw/
+tasks/result.json
+tasks/task.json
+
+# Local memory/state
+bridge/memory.json
+
+# Environment
+.env
+
+# Workspace (runtime target, has its own git history)
 /workspace/
-# .env
-# tasks/result.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
