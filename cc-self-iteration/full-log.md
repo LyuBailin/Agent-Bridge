@@ -284,7 +284,7 @@
 
 #### 验证结果
 - phase-13-1-test3: 1 次尝试成功
-- 文件创建在正确位置: workspace/project/...
+- 文件创建在正确位置: workspace/...
 - 提交: cadfdc2290d0832bd012c654dd3e22f80f584dfb
 
 ### 提交
