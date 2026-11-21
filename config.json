@@ -10,7 +10,7 @@
     "provider": "openai",
     "model": "qwen3.5-flash",
     "base_url": "https://api.openai-proxy.org/v1",
-    "openai_api_key": "sk-2TM8euNlKv1K0UNdwEM4Nw4YS7L5UIQuphO2ZQ9lwGoAszZe"
+    "api_key_env": "OPENAI_API_KEY"
   },
   "useOllama": true,
   "useFunctionCalling": true,
